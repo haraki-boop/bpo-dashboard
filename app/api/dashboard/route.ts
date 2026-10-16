@@ -1,23 +1,15 @@
 import { NextResponse } from 'next/server';
 
-// 現場ごとの GAS URL 管理
-const SITE_GAS_URLS: Record<string, string> = {
-  yamanaka: 'https://script.google.com/macros/s/AKfycbwDAojHLnFMEJ7G3V_Gy3L_56i_Osdm8xg-3KI7CUzqPHz7FcjbKIt_AsOr7OU38poosQ/exec',
-  // 今後現場が増えたらここに追加
-};
+// 共通して利用する GAS の Webアプリ URL
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwDAojHLnFMEJ7G3V_Gy3L_56i_Osdm8xg-3KI7CUzqPHz7FcjbKIt_AsOr7OU38poosQ/exec';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const site = searchParams.get('site') || 'yamanaka';
-  const gasUrl = SITE_GAS_URLS[site];
-
-  if (!gasUrl) {
-    return NextResponse.json({ error: '指定された現場が見つかりません' }, { status: 400 });
-  }
 
   try {
-    // 常に最新データをスプレッドシートから取得 (no-store)
-    const res = await fetch(`${gasUrl}?t=${Date.now()}`, {
+    // GASに対して ?site=bisai や ?site=yamanaka を動的に付与してリクエストを送信
+    const res = await fetch(`${GAS_URL}?site=${site}&t=${Date.now()}`, {
       cache: 'no-store',
     });
 
