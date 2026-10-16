@@ -32,8 +32,8 @@ export default function PortalPage() {
             <LayoutDashboard className="w-4 h-4" />
             <span>BPO OPERATIONS COMMAND CENTER</span>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">拠点選択ポータル</h1>
-          <p className="text-slate-500 text-sm font-semibold mt-2">閲覧するBPO現場（センター）を選択してください</p>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表　拠点選択</h1>
+          <p className="text-slate-500 text-sm font-semibold mt-2">閲覧するセンターを選択してください</p>
         </div>
 
         {/* 現場カード一覧 */}
