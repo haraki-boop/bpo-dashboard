@@ -2,22 +2,20 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Building2, ArrowRight, LayoutDashboard } from 'lucide-react';
+import { ArrowRight, LayoutDashboard } from 'lucide-react';
 
 const sites = [
   {
     id: 'yamanaka',
     name: 'ヤマナカ センター',
     desc: 'ヤマナカ BPO現場パフォーマンス・KPI分析ダッシュボード',
-    status: '稼働中',
-    badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    image: '/yamanaka.png',
   },
   {
-    id: 'bisai', // ★ AFS尾西を追加（IDは 'bisai'）
+    id: 'bisai',
     name: 'AFS尾西 センター',
     desc: 'AFS尾西 BPO現場パフォーマンス・KPI分析ダッシュボード',
-    status: '稼働中',
-    badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    image: '/bisai.png',
   },
 ];
 
@@ -32,7 +30,7 @@ export default function PortalPage() {
             <LayoutDashboard className="w-4 h-4" />
             <span>BPO OPERATIONS COMMAND CENTER</span>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表　拠点選択</h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
           <p className="text-slate-500 text-sm font-semibold mt-2">閲覧するセンターを選択してください</p>
         </div>
 
@@ -45,14 +43,15 @@ export default function PortalPage() {
               className="group bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between"
             >
               <div>
-                <div className="flex justify-between items-center mb-4">
-                  <div className="p-3 bg-slate-100 rounded-2xl group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                    <Building2 className="w-6 h-6 text-slate-700 group-hover:text-indigo-600" />
-                  </div>
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${site.badgeBg}`}>
-                    {site.status}
-                  </span>
+                {/* ロゴ画像をしっかり大きく表示できる枠に変更 */}
+                <div className="mb-5 p-3 bg-slate-50/80 rounded-2xl border border-slate-200/60 flex items-center justify-center h-24 w-full group-hover:bg-indigo-50/50 transition-colors">
+                  <img
+                    src={site.image}
+                    alt={site.name}
+                    className="max-h-full max-w-full object-contain"
+                  />
                 </div>
+                
                 <h2 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
                   {site.name}
                 </h2>
