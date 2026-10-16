@@ -40,25 +40,25 @@ export default function PortalPage() {
             <Link
               key={site.id}
               href={`/${site.id}`}
-              className="group bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between"
+              className="group bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between"
             >
               <div>
-                {/* ロゴ画像をしっかり大きく表示できる枠に変更 */}
-                <div className="mb-5 p-3 bg-slate-50/80 rounded-2xl border border-slate-200/60 flex items-center justify-center h-24 w-full group-hover:bg-indigo-50/50 transition-colors">
-                  <img
-                    src={site.image}
-                    alt={site.name}
-                    className="max-h-full max-w-full object-contain"
-                  />
+                {/* 拠点ロゴ（大きく表示）＋ 拠点タイトル */}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="shrink-0 flex items-center justify-center p-2 bg-slate-50 rounded-2xl border border-slate-200/80 shadow-2xs h-16 w-16 group-hover:bg-indigo-50/60 transition-colors">
+                    <img src={site.image} alt={site.name} className="h-full w-full object-contain" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight">
+                      {site.name}
+                    </h2>
+                  </div>
                 </div>
-                
-                <h2 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
-                  {site.name}
-                </h2>
-                <p className="text-xs text-slate-500 leading-relaxed">{site.desc}</p>
+
+                <p className="text-xs text-slate-500 leading-relaxed font-medium pl-1">{site.desc}</p>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
+              <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
                 <span>ダッシュボードを開く</span>
                 <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
               </div>
