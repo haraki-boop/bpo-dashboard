@@ -146,7 +146,6 @@ export default function Dashboard() {
     { id: 9, key: 'operatingProfit', name: '9. 営業利益率', unit: '%', isReverse: false, desc: '営業利益率のポイント推移' },
   ], []);
 
-  // ★ 全20パターンの定性コメント分岐ロジック
   const metricAnalysis = useMemo(() => {
     return metricsList.map(item => {
       const k26 = `${item.key}26` as keyof BpoData;
@@ -200,7 +199,7 @@ export default function Dashboard() {
         id: item.id,
         key: item.key,
         name: item.name,
-        desc: item.desc, // ★ 欠落していたdescを修正追加
+        desc: item.desc,
         v26: v26,
         v27: v27,
         unit: item.unit,
@@ -532,36 +531,32 @@ export default function Dashboard() {
                   <div className="mb-4 pb-3 border-b border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-indigo-600" />
-                      <h2 className="text-base font-black text-slate-900">月別トピックス (4月〜翌3月 通年ログ)</h2>
+                      <h2 className="text-base font-black text-slate-900">月別トピックス (実績推移ログ)</h2>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {fullYearData.map((m, idx) => {
-                      const s26 = m.sales26 || 0;
-                      const s27 = m.sales27 || 0;
-                      const sPct = s26 > 0 ? (((s27 - s26) / s26) * 100).toFixed(2) : '0.00';
-                      
-                      const p26 = m.prodAll26 || 0;
-                      const p27 = m.prodAll27 || 0;
-                      const pPct = p26 > 0 ? (((p27 - p26) / p26) * 100).toFixed(2) : '0.00';
-                      
-                      const hasData = Boolean(s27 || m.prodAll27 || m.eventNote);
+                    {/* ★ 未入力月（売上・生産性・イベントいずれも無い月）を完全非表示にフィルター */}
+                    {fullYearData
+                      .filter(m => (m.sales26 || 0) > 0 || (m.sales27 || 0) > 0 || (m.prodAll26 || 0) > 0 || (m.prodAll27 || 0) > 0 || Boolean(m.eventNote))
+                      .map((m, idx) => {
+                        const s26 = m.sales26 || 0;
+                        const s27 = m.sales27 || 0;
+                        const sPct = s26 > 0 ? (((s27 - s26) / s26) * 100).toFixed(2) : '0.00';
+                        
+                        const p26 = m.prodAll26 || 0;
+                        const p27 = m.prodAll27 || 0;
+                        const pPct = p26 > 0 ? (((p27 - p26) / p26) * 100).toFixed(2) : '0.00';
 
-                      return (
-                        <div
-                          key={idx}
-                          className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${
-                            hasData
-                              ? 'bg-slate-50/70 border-slate-200 hover:border-indigo-300 hover:shadow-md'
-                              : 'bg-slate-50/30 border-slate-100 opacity-60'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-sm font-black text-slate-900 bg-slate-200/60 px-2 py-0.5 rounded-lg">{m.period}</span>
-                          </div>
+                        return (
+                          <div
+                            key={idx}
+                            className="p-3 rounded-xl border transition-all flex flex-col justify-between bg-slate-50/70 border-slate-200 hover:border-indigo-300 hover:shadow-md"
+                          >
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-sm font-black text-slate-900 bg-slate-200/60 px-2 py-0.5 rounded-lg">{m.period}</span>
+                            </div>
 
-                          {hasData ? (
                             <div className="flex flex-col gap-1.5 mt-0.5 mb-1.5">
                               <div className="flex items-end justify-between border-b border-slate-200 pb-1">
                                 <span className="text-xs font-bold text-slate-500 mb-0.5">売上</span>
@@ -582,23 +577,20 @@ export default function Dashboard() {
                                 </div>
                               </div>
                             </div>
-                          ) : (
-                            <div className="text-xs text-slate-300 italic my-3 text-center font-bold">データ未入力</div>
-                          )}
 
-                          <div className="mt-0.5 pt-1">
-                            {m.eventNote ? (
-                              <div className="px-2.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-900 flex items-center gap-1.5 shadow-2xs">
-                                <MessageSquareText className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                                <span className="truncate">{m.eventNote}</span>
-                              </div>
-                            ) : (
-                              <span className="text-[10px] text-slate-400 italic font-medium px-1">※ 特記事項なし</span>
-                            )}
+                            <div className="mt-0.5 pt-1">
+                              {m.eventNote ? (
+                                <div className="px-2.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-900 flex items-center gap-1.5 shadow-2xs">
+                                  <MessageSquareText className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                                  <span className="truncate">{m.eventNote}</span>
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 italic font-medium px-1">※ 特記事項なし</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                   </div>
                 </div>
               </div>
