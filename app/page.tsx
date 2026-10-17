@@ -17,6 +17,12 @@ const sites = [
     desc: 'AFS尾西 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/bisai.png',
   },
+  {
+    id: 'tokyu',
+    name: '東急ストア センター',
+    desc: '東急ストア BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/tokyu.png',
+  },
 ];
 
 export default function PortalPage() {

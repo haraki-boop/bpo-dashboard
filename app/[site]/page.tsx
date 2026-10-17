@@ -26,6 +26,7 @@ interface BpoData {
   operatingProfit26: number; operatingProfit27: number;
 }
 
+// 拠点ごとの固有機能設定（東急ストアを追加）
 const SITE_CONFIGS: Record<string, {
   name: string;
   hasChikusan: boolean;
@@ -43,6 +44,12 @@ const SITE_CONFIGS: Record<string, {
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: true,
+  },
+  tokyu: {
+    name: '東急ストア センター',
+    hasChikusan: true,
+    hasSuisan: false,
+    hasDelica: false,
   },
 };
 
@@ -63,7 +70,7 @@ const formatValue = (key: string, value: number) => {
       return `¥${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     case 'error':
       return `${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
-    case 'dx': // ★ DX評価も小数点第4位まで表示に修正
+    case 'dx':
       return Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
     case 'prodAll':
     case 'prodChikusan':
@@ -188,7 +195,7 @@ function DashboardContent() {
     }
 
     list.push(
-      { id: idCounter++, key: 'error', name: `${idCounter - 1}. 事故評価(エラー率)`, unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)' }, // ★ isReverse: true
+      { id: idCounter++, key: 'error', name: `${idCounter - 1}. 事故評価(エラー率)`, unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)' },
       { id: idCounter++, key: 'dx', name: `${idCounter - 1}. DX評価`, unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標' },
       { id: idCounter++, key: 'grossProfit', name: `${idCounter - 1}. 売上総利益率`, unit: '%', isReverse: false, desc: '粗利益率のポイント推移' },
       { id: idCounter++, key: 'operatingProfit', name: `${idCounter - 1}. 営業利益率`, unit: '%', isReverse: false, desc: '営業利益率のポイント推移' }
@@ -213,7 +220,6 @@ function DashboardContent() {
       const diff = v27 - v26;
       const pctNum = v26 > 0 ? (diff / v26) * 100 : 0;
       
-      // ★ エラー率は数値が増えると「悪化（isGood = false）」になる反転判定
       const isGood = item.isReverse ? diff <= 0 : diff >= 0;
 
       let reasonText = '';
@@ -263,7 +269,6 @@ function DashboardContent() {
       };
     });
   }, [totalSales26, totalSales27, data, metricsList]);
-
   const packUnitSummary = useMemo(() => {
     const list = [
       {
@@ -310,6 +315,7 @@ function DashboardContent() {
     return list;
   }, [data, siteConfig]);
 
+  // ★ 新しいSABCD基準（S: 8~, A: 6~7, B: 4~5, C: 2~3, D: 0~1）
   const gradeInfo = useMemo(() => {
     const validMetrics = metricAnalysis.filter(m => m.key !== 'dx');
     const goodCount = validMetrics.filter(m => m.isGood).length;
@@ -368,7 +374,6 @@ function DashboardContent() {
     return list;
   }, [siteConfig]);
 
-  // ★ ヒートマップの背景色定義（isReverse による評価反転）
   const getHeatmapBg = (pctNum: number, isReverse: boolean, isGrayBase: boolean = false) => {
     if (isNaN(pctNum) || !isFinite(pctNum)) return 'bg-slate-50 border-slate-200 text-slate-400';
     
@@ -376,12 +381,11 @@ function DashboardContent() {
       return 'bg-slate-50 border-slate-200 text-slate-800';
     }
 
-    // エラー率等の反転項目は pctNum を反転
     const effectivePct = isReverse ? -pctNum : pctNum;
     if (effectivePct >= 15) return 'bg-emerald-600 text-white font-bold border-emerald-700';
     if (effectivePct > 0) return 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold';
     if (effectivePct > -10) return 'bg-amber-50 text-amber-800 border-amber-200 font-bold';
-    return 'bg-rose-600 text-white font-bold border-rose-700'; // 悪化時は赤色
+    return 'bg-rose-600 text-white font-bold border-rose-700';
   };
 
   const processedMetrics = useMemo(() => {
@@ -506,17 +510,18 @@ function DashboardContent() {
                 </div>
               </div>
 
+              {/* ★ 新基準のラベル表示に更新 */}
               <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-bold z-10">
                 <span className="flex items-center gap-1 text-slate-400">
                   <Target className="w-3 h-3" />
                   <span>昨対改善数 判定基準:</span>
                 </span>
                 <div className="flex gap-1.5">
-                  <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">S: 7~</span>
-                  <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">A: 5~6</span>
-                  <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">B: 3~4</span>
-                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">C: 1~2</span>
-                  <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">D: 0</span>
+                  <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">S: 8~</span>
+                  <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">A: 6~7</span>
+                  <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">B: 4~5</span>
+                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">C: 2~3</span>
+                  <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">D: ~1</span>
                 </div>
               </div>
             </div>
@@ -848,7 +853,6 @@ function DashboardContent() {
                               );
                             }
 
-                            // ★ isReverse による反転評価を適用
                             const cellBg = getHeatmapBg(diffPct, m.isReverse, false);
 
                             return (
