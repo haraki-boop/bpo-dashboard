@@ -4,13 +4,14 @@ import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
-  TrendingUp, TrendingDown, AlertTriangle, RefreshCw, MessageSquareText, CheckCircle2, XCircle, LayoutGrid, Table, Clock, Trophy, Target, ShieldCheck, Tag, EyeOff, Eye, ArrowLeft
+  TrendingUp, TrendingDown, AlertTriangle, RefreshCw, MessageSquareText, CheckCircle2, XCircle, LayoutGrid, Table, Clock, Trophy, Target, ShieldCheck, Tag, EyeOff, Eye, ArrowLeft, Package
 } from 'lucide-react';
 
 interface BpoData {
   period: string;
   eventNote?: string;
   sales26: number; sales27: number;
+  volume26: number; volume27: number;
   prodSales26: number; prodSales27: number;
   prodAll26: number; prodAll27: number;
   prodChikusan26: number; prodChikusan27: number;
@@ -26,7 +27,6 @@ interface BpoData {
   operatingProfit26: number; operatingProfit27: number;
 }
 
-// 拠点ごとの固有機能設定（東急ストアを追加）
 const SITE_CONFIGS: Record<string, {
   name: string;
   hasChikusan: boolean;
@@ -61,6 +61,8 @@ const formatValue = (key: string, value: number) => {
       return `¥${Number(value).toLocaleString('ja-JP')}`;
     case 'salesWan':
       return `${(Number(value) / 10000).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    case 'volume':
+      return Number(value).toLocaleString('ja-JP', { maximumFractionDigits: 0 });
     case 'prodSales':
       return `${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     case 'packAll':
@@ -111,7 +113,9 @@ function DashboardContent() {
         const processedData = result.data.map((d: any) => ({
           ...d,
           sales26: Number(String(d.sales26 || 0).replace(/[^0-9.-]+/g,"")),
-          sales27: Number(String(d.sales27 || 0).replace(/[^0-9.-]+/g,""))
+          sales27: Number(String(d.sales27 || 0).replace(/[^0-9.-]+/g,"")),
+          volume26: Number(String(d.volume26 || 0).replace(/[^0-9.-]+/g,"")),
+          volume27: Number(String(d.volume27 || 0).replace(/[^0-9.-]+/g,""))
         }));
         setData(processedData);
       }
@@ -128,14 +132,15 @@ function DashboardContent() {
 
   const calcSum = (key: keyof BpoData) => data.reduce((s, d) => s + (Number(d[key]) || 0), 0);
   
-  const getValidMonths = (term: '26' | '27') => {
-    const count = data.filter(d => (Number(d[`sales${term}`]) || 0) > 0).length;
-    return count > 0 ? count : 1; 
+  // ★ 26期・27期それぞれのプロパティにおいて、0より大きい数値が入っている月数のみをカウント
+  const getValidCount = (key: keyof BpoData) => {
+    const count = data.filter(d => (Number(d[key]) || 0) > 0).length;
+    return count > 0 ? count : 1;
   };
 
+  // ★ 27期に数値が入っている月（実績がある月）に絞って26期も比較計算
   const calcAvg = (key: keyof BpoData) => {
-    const term = key.endsWith('26') ? '26' : '27';
-    return calcSum(key) / getValidMonths(term);
+    return calcSum(key) / getValidCount(key);
   };
 
   const totalSales26 = calcSum('sales26');
@@ -315,7 +320,6 @@ function DashboardContent() {
     return list;
   }, [data, siteConfig]);
 
-  // ★ 新しいSABCD基準（S: 8~, A: 6~7, B: 4~5, C: 2~3, D: 0~1）
   const gradeInfo = useMemo(() => {
     const validMetrics = metricAnalysis.filter(m => m.key !== 'dx');
     const goodCount = validMetrics.filter(m => m.isGood).length;
@@ -360,6 +364,7 @@ function DashboardContent() {
 
   const packMetricsList = useMemo(() => {
     const list = [
+      { id: 'volume', key: 'volume', name: '総物量 (全体)', unit: '', isReverse: false, desc: '月次の処理総物量' },
       { id: 'packAll', key: 'packAll', name: 'パック単価(全体)', unit: '', isReverse: false, desc: '商品1パックあたりの平均単価' }
     ];
     if (siteConfig.hasChikusan) {
@@ -510,7 +515,6 @@ function DashboardContent() {
                 </div>
               </div>
 
-              {/* ★ 新基準のラベル表示に更新 */}
               <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-bold z-10">
                 <span className="flex items-center gap-1 text-slate-400">
                   <Target className="w-3 h-3" />
@@ -815,8 +819,16 @@ function DashboardContent() {
                     {metricsList.map(m => {
                       const k26 = `${m.key}26` as keyof BpoData;
                       const k27 = `${m.key}27` as keyof BpoData;
-                      let avg26 = m.key === 'sales' ? totalSales26 / getValidMonths('26') : calcAvg(k26);
-                      let avg27 = m.key === 'sales' ? totalSales27 / getValidMonths('27') : calcAvg(k27);
+                      
+                      // ★ 27期で実績（数値>0）が存在する月だけに絞り込んで26期の平均・合計を算出（期間の条件を完全同一に設定）
+                      const activeMonths = data.filter(d => (Number(d[k27]) || 0) > 0);
+                      const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
+
+                      let sum26 = activeMonths.reduce((sum, d) => sum + (Number(d[k26]) || 0), 0);
+                      let sum27 = activeMonths.reduce((sum, d) => sum + (Number(d[k27]) || 0), 0);
+
+                      let avg26 = m.key === 'sales' ? sum26 : sum26 / validCount;
+                      let avg27 = m.key === 'sales' ? sum27 : sum27 / validCount;
                       
                       if (m.key === 'grossProfit' || m.key === 'operatingProfit') {
                         avg26 = avg26 * 100;
@@ -901,16 +913,17 @@ function DashboardContent() {
                 </table>
               </div>
 
+              {/* 売上単価 ＋ 総物量指標 (月別推移) */}
               <div className="mt-8 pt-6 border-t border-slate-200/80">
                 <div className="flex items-center gap-2 mb-4">
-                  <Tag className="w-5 h-5 text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-900">売上単価指標 (月別推移)</h3>
+                  <Package className="w-5 h-5 text-indigo-600" />
+                  <h3 className="text-sm font-bold text-slate-900">売上単価・総物量指標 (月別推移)</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
-                        <th className="py-3 px-4 min-w-[180px]">単価 項目名</th>
+                        <th className="py-3 px-4 min-w-[180px]">単価・物量 項目名</th>
                         {displayData.map(d => (
                           <th key={d.period} className="py-3 px-2 text-center min-w-[120px]">{d.period}</th>
                         ))}
@@ -921,8 +934,16 @@ function DashboardContent() {
                       {packMetricsList.map(m => {
                         const k26 = `${m.key}26` as keyof BpoData;
                         const k27 = `${m.key}27` as keyof BpoData;
-                        const avg26 = calcAvg(k26);
-                        const avg27 = calcAvg(k27);
+                        
+                        // ★ 27期の実績がある月（4月〜9月等）に合わせた同期間での平均値・伸び率を正確に計算
+                        const activeMonths = data.filter(d => (Number(d[k27]) || 0) > 0);
+                        const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
+
+                        const sum26 = activeMonths.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
+                        const sum27 = activeMonths.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
+
+                        const avg26 = sum26 / validCount;
+                        const avg27 = sum27 / validCount;
                         const totalDiffPct = avg26 > 0 ? ((avg27 - avg26) / avg26) * 100 : 0;
 
                         return (
@@ -1096,13 +1117,13 @@ function DashboardContent() {
               <div className="mt-8 pt-6 border-t border-slate-200/80">
                 <div className="flex items-center gap-2 mb-4">
                   <Tag className="w-5 h-5 text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-900">売上単価指標 比較表</h3>
+                  <h3 className="text-sm font-bold text-slate-900">売上単価・物量指標 比較表</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
-                        <th className="py-3 px-4">単価 項目</th>
+                        <th className="py-3 px-4">単価・物量 項目</th>
                         <th className="py-3 px-4 text-right">26期 平均</th>
                         <th className="py-3 px-4 text-right">27期 平均</th>
                         <th className="py-3 px-4 text-right">前年差分</th>
@@ -1113,8 +1134,14 @@ function DashboardContent() {
                       {packMetricsList.map(m => {
                         const k26 = `${m.key}26` as keyof BpoData;
                         const k27 = `${m.key}27` as keyof BpoData;
-                        const avg26 = calcAvg(k26);
-                        const avg27 = calcAvg(k27);
+                        const activeMonths = data.filter(d => (Number(d[k27]) || 0) > 0);
+                        const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
+
+                        const sum26 = activeMonths.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
+                        const sum27 = activeMonths.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
+
+                        const avg26 = sum26 / validCount;
+                        const avg27 = sum27 / validCount;
                         const diff = avg27 - avg26;
                         const pct = avg26 > 0 ? (diff / avg26) * 100 : 0;
                         const isGood = pct >= 0;
