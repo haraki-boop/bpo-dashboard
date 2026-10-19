@@ -132,13 +132,11 @@ function DashboardContent() {
 
   const calcSum = (key: keyof BpoData) => data.reduce((s, d) => s + (Number(d[key]) || 0), 0);
   
-  // ★ 26期・27期それぞれのプロパティにおいて、0より大きい数値が入っている月数のみをカウント
   const getValidCount = (key: keyof BpoData) => {
     const count = data.filter(d => (Number(d[key]) || 0) > 0).length;
     return count > 0 ? count : 1;
   };
 
-  // ★ 27期に数値が入っている月（実績がある月）に絞って26期も比較計算
   const calcAvg = (key: keyof BpoData) => {
     return calcSum(key) / getValidCount(key);
   };
@@ -379,6 +377,7 @@ function DashboardContent() {
     return list;
   }, [siteConfig]);
 
+  // ★ ヒートマップ背景判定：濃い緑の条件を 15% 以上から 10% 以上に変更
   const getHeatmapBg = (pctNum: number, isReverse: boolean, isGrayBase: boolean = false) => {
     if (isNaN(pctNum) || !isFinite(pctNum)) return 'bg-slate-50 border-slate-200 text-slate-400';
     
@@ -387,7 +386,7 @@ function DashboardContent() {
     }
 
     const effectivePct = isReverse ? -pctNum : pctNum;
-    if (effectivePct >= 15) return 'bg-emerald-600 text-white font-bold border-emerald-700';
+    if (effectivePct >= 10) return 'bg-emerald-600 text-white font-bold border-emerald-700'; // ★ +10%以上に変更
     if (effectivePct > 0) return 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold';
     if (effectivePct > -10) return 'bg-amber-50 text-amber-800 border-amber-200 font-bold';
     return 'bg-rose-600 text-white font-bold border-rose-700';
@@ -409,7 +408,8 @@ function DashboardContent() {
             <span>拠点選択へ戻る</span>
           </Link>
           <div className="h-8 w-[1px] bg-slate-200 hidden md:block"></div>
-          <div className="flex items-center justify-center px-4 py-2 rounded-2xl border border-slate-200/80 bg-white shadow-2xs h-[50px] min-w-[120px]">
+          {/* ★ PALロゴ：囲み枠・グレー背景を撤去して直接表示 */}
+          <div className="flex items-center justify-center h-10 w-auto">
             <img src="/pal-logo.png" alt="PAL Logo" className="h-8 w-auto object-contain" />
           </div>
           <div>
@@ -797,7 +797,8 @@ function DashboardContent() {
                     {hideEmptyMonths ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     <span>未入力月を非表示</span>
                   </button>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> +15%以上</span>
+                  {/* ★ 凡例テキストを「+10%以上」に改修 */}
+                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> +10%以上</span>
                   <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-100 border border-emerald-300"></span> プラス</span>
                   <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-100 border border-amber-300"></span> マイナス</span>
                   <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span> 要確認</span>
@@ -820,7 +821,6 @@ function DashboardContent() {
                       const k26 = `${m.key}26` as keyof BpoData;
                       const k27 = `${m.key}27` as keyof BpoData;
                       
-                      // ★ 27期で実績（数値>0）が存在する月だけに絞り込んで26期の平均・合計を算出（期間の条件を完全同一に設定）
                       const activeMonths = data.filter(d => (Number(d[k27]) || 0) > 0);
                       const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
 
@@ -935,7 +935,6 @@ function DashboardContent() {
                         const k26 = `${m.key}26` as keyof BpoData;
                         const k27 = `${m.key}27` as keyof BpoData;
                         
-                        // ★ 27期の実績がある月（4月〜9月等）に合わせた同期間での平均値・伸び率を正確に計算
                         const activeMonths = data.filter(d => (Number(d[k27]) || 0) > 0);
                         const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
 
