@@ -49,9 +49,9 @@ export default function PortalPage() {
               className="group bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between"
             >
               <div>
-                {/* 拠点ロゴ（大きく表示）＋ 拠点タイトル */}
+                {/* 拠点ロゴ（枠・背景なしで直接配置） ＋ 拠点タイトル */}
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="shrink-0 flex items-center justify-center p-2 bg-slate-50 rounded-2xl border border-slate-200/80 shadow-2xs h-16 w-16 group-hover:bg-indigo-50/60 transition-colors">
+                  <div className="shrink-0 flex items-center justify-center h-16 w-16">
                     <img src={site.image} alt={site.name} className="h-full w-full object-contain" />
                   </div>
                   <div>
