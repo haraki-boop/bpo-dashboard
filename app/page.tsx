@@ -31,11 +31,21 @@ export default function PortalPage() {
       <div className="max-w-4xl w-full">
         
         {/* ヘッダー */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 flex flex-col items-center">
+          {/* ★ 赤枠の位置：枠なし・背景なしのPALロゴ */}
+          <div className="mb-4 h-12 flex items-center justify-center">
+            <img
+              src="/pal-logo.png"
+              alt="PAL Logo"
+              className="h-full w-auto object-contain"
+            />
+          </div>
+
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold mb-4">
             <LayoutDashboard className="w-4 h-4" />
             <span>BPO OPERATIONS COMMAND CENTER</span>
           </div>
+
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
           <p className="text-slate-500 text-sm font-semibold mt-2">閲覧するセンターを選択してください</p>
         </div>
