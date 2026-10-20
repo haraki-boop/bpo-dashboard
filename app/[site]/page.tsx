@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
-  TrendingUp, TrendingDown, AlertTriangle, RefreshCw, MessageSquareText, CheckCircle2, XCircle, LayoutGrid, Table, Clock, Trophy, Target, ShieldCheck, Tag, EyeOff, Eye, ArrowLeft, Package
+  TrendingUp, TrendingDown, AlertTriangle, RefreshCw, MessageSquareText, CheckCircle2, XCircle, LayoutGrid, Table, Clock, Trophy, Target, ShieldCheck, Tag, EyeOff, Eye, ArrowLeft, Package, DollarSign
 } from 'lucide-react';
 
 interface BpoData {
@@ -25,6 +25,7 @@ interface BpoData {
   dx26: number; dx27: number;
   grossProfit26: number; grossProfit27: number;
   operatingProfit26: number; operatingProfit27: number;
+  budgetOperatingProfit26?: number; budgetOperatingProfit27?: number;
 }
 
 const SITE_CONFIGS: Record<string, {
@@ -58,6 +59,7 @@ const formatValue = (key: string, value: number) => {
   
   switch (key) {
     case 'sales': 
+    case 'budgetOperatingProfit':
       return `¥${Number(value).toLocaleString('ja-JP')}`;
     case 'salesWan':
       return `${(Number(value) / 10000).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -115,7 +117,9 @@ function DashboardContent() {
           sales26: Number(String(d.sales26 || 0).replace(/[^0-9.-]+/g,"")),
           sales27: Number(String(d.sales27 || 0).replace(/[^0-9.-]+/g,"")),
           volume26: Number(String(d.volume26 || 0).replace(/[^0-9.-]+/g,"")),
-          volume27: Number(String(d.volume27 || 0).replace(/[^0-9.-]+/g,""))
+          volume27: Number(String(d.volume27 || 0).replace(/[^0-9.-]+/g,"")),
+          budgetOperatingProfit26: Number(String(d.budgetOperatingProfit26 || 0).replace(/[^0-9.-]+/g,"")),
+          budgetOperatingProfit27: Number(String(d.budgetOperatingProfit27 || 0).replace(/[^0-9.-]+/g,""))
         }));
         setData(processedData);
       }
@@ -377,7 +381,6 @@ function DashboardContent() {
     return list;
   }, [siteConfig]);
 
-  // ★ ヒートマップ背景判定：濃い緑の条件を 15% 以上から 10% 以上に変更
   const getHeatmapBg = (pctNum: number, isReverse: boolean, isGrayBase: boolean = false) => {
     if (isNaN(pctNum) || !isFinite(pctNum)) return 'bg-slate-50 border-slate-200 text-slate-400';
     
@@ -386,7 +389,7 @@ function DashboardContent() {
     }
 
     const effectivePct = isReverse ? -pctNum : pctNum;
-    if (effectivePct >= 10) return 'bg-emerald-600 text-white font-bold border-emerald-700'; // ★ +10%以上に変更
+    if (effectivePct >= 10) return 'bg-emerald-600 text-white font-bold border-emerald-700';
     if (effectivePct > 0) return 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold';
     if (effectivePct > -10) return 'bg-amber-50 text-amber-800 border-amber-200 font-bold';
     return 'bg-rose-600 text-white font-bold border-rose-700';
@@ -408,7 +411,6 @@ function DashboardContent() {
             <span>拠点選択へ戻る</span>
           </Link>
           <div className="h-8 w-[1px] bg-slate-200 hidden md:block"></div>
-          {/* ★ PALロゴ：囲み枠・グレー背景を撤去して直接表示 */}
           <div className="flex items-center justify-center h-10 w-auto">
             <img src="/pal-logo.png" alt="PAL Logo" className="h-8 w-auto object-contain" />
           </div>
@@ -797,7 +799,6 @@ function DashboardContent() {
                     {hideEmptyMonths ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     <span>未入力月を非表示</span>
                   </button>
-                  {/* ★ 凡例テキストを「+10%以上」に改修 */}
                   <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> +10%以上</span>
                   <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-100 border border-emerald-300"></span> プラス</span>
                   <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-100 border border-amber-300"></span> マイナス</span>
@@ -911,6 +912,93 @@ function DashboardContent() {
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* ★ 新設：予算営業利益（タイトル仮）セクション */}
+              <div className="mt-8 pt-6 border-t border-slate-200/80">
+                <div className="flex items-center gap-2 mb-4">
+                  <DollarSign className="w-5 h-5 text-indigo-600" />
+                  <h3 className="text-sm font-bold text-slate-900">予算営業利益 (仮)</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
+                        <th className="py-3 px-4 min-w-[180px]">項目名</th>
+                        {displayData.map(d => (
+                          <th key={d.period} className="py-3 px-2 text-center min-w-[120px]">{d.period}</th>
+                        ))}
+                        <th className="py-3 px-4 text-right min-w-[120px]">半期平均前年比</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {(() => {
+                        const activeMonths = data.filter(d => (Number(d.budgetOperatingProfit27) || 0) > 0);
+                        const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
+
+                        const sum26 = activeMonths.reduce((s, d) => s + (Number(d.budgetOperatingProfit26) || 0), 0);
+                        const sum27 = activeMonths.reduce((s, d) => s + (Number(d.budgetOperatingProfit27) || 0), 0);
+
+                        const avg26 = sum26 / validCount;
+                        const avg27 = sum27 / validCount;
+                        const totalDiffPct = avg26 > 0 ? ((avg27 - avg26) / avg26) * 100 : 0;
+
+                        return (
+                          <tr className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-3 px-4 font-bold text-slate-800">
+                              予算営業利益 (仮)
+                              <span className="block text-[10px] font-normal text-slate-400">月次予算営業利益の推移</span>
+                            </td>
+                            {displayData.map(monthData => {
+                              const v26 = Number(monthData.budgetOperatingProfit26) || 0;
+                              const v27 = Number(monthData.budgetOperatingProfit27) || 0;
+                              const diffPct = v26 > 0 ? ((v27 - v26) / v26) * 100 : 0;
+                              const cellBg = getHeatmapBg(diffPct, false, true);
+                              const isMissing = monthData.budgetOperatingProfit26 === undefined && monthData.budgetOperatingProfit27 === undefined;
+
+                              return (
+                                <td key={monthData.period} className="py-2 px-1.5 text-center">
+                                  {!isMissing && (v26 > 0 || v27 > 0) ? (
+                                    <div className={`p-2.5 rounded-xl border flex flex-col justify-center gap-1 shadow-2xs ${cellBg} min-w-[110px]`}>
+                                      <div className="flex justify-between items-end w-full leading-none">
+                                        <span className="text-[10px] font-medium opacity-80 text-slate-500">26期</span>
+                                        <span className="text-sm font-bold text-slate-800">{formatValue('budgetOperatingProfit', v26)}</span>
+                                      </div>
+                                      <div className="flex justify-between items-end w-full leading-none mt-1">
+                                        <span className="text-[10px] font-medium opacity-80 text-slate-500">27期</span>
+                                        <span className="text-sm font-black text-slate-900">{formatValue('budgetOperatingProfit', v27)}</span>
+                                      </div>
+                                      <div className="w-full mt-1.5 pt-1.5 border-t border-slate-200 flex justify-end items-center">
+                                        <span className={`text-[13px] font-black tracking-tight ${diffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                          {diffPct >= 0 ? '+' : ''}{diffPct.toFixed(2)}%
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="py-2 px-1 rounded-xl bg-slate-100 text-slate-400 text-center font-bold text-xs min-w-[110px]">
+                                      ー
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            <td className="py-3 px-4 text-right font-bold text-slate-900">
+                              {avg26 > 0 || avg27 > 0 ? (
+                                <span className={`inline-block px-3 py-1.5 rounded-lg text-[13px] font-black border bg-slate-50 border-slate-200 ${totalDiffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {totalDiffPct >= 0 ? '+' : ''}{totalDiffPct.toFixed(2)}%
+                                </span>
+                              ) : (
+                                <span className="inline-block px-4 py-1.5 rounded-lg text-[13px] font-black bg-slate-50 text-slate-300 border border-slate-100">
+                                  ー
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* 売上単価 ＋ 総物量指標 (月別推移) */}
