@@ -21,11 +21,7 @@ import {
   EyeOff,
   Eye,
   ArrowLeft,
-  Package,
-  DollarSign,
-  BarChart3,
-  PieChart,
-  Layers
+  Package
 } from 'lucide-react';
 
 interface BpoData {
@@ -56,7 +52,6 @@ interface BpoData {
   dx26: number; dx27: number;
   grossProfit26: number; grossProfit27: number;
   operatingProfit26: number; operatingProfit27: number;
-  budgetOperatingProfit26?: number; budgetOperatingProfit27?: number;
 }
 
 const SITE_CONFIGS: Record<string, {
@@ -101,7 +96,6 @@ const formatValue = (key: string, value: number) => {
   
   switch (key) {
     case 'sales': 
-    case 'budgetOperatingProfit':
       return `¥${Number(value).toLocaleString('ja-JP')}`;
     case 'salesWan':
       return `${(Number(value) / 10000).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -168,9 +162,7 @@ function DashboardContent() {
           sales26: Number(String(d.sales26 || 0).replace(/[^0-9.-]+/g,"")),
           sales27: Number(String(d.sales27 || 0).replace(/[^0-9.-]+/g,"")),
           volume26: Number(String(d.volume26 || 0).replace(/[^0-9.-]+/g,"")),
-          volume27: Number(String(d.volume27 || 0).replace(/[^0-9.-]+/g,"")),
-          budgetOperatingProfit26: Number(String(d.budgetOperatingProfit26 || 0).replace(/[^0-9.-]+/g,"")),
-          budgetOperatingProfit27: Number(String(d.budgetOperatingProfit27 || 0).replace(/[^0-9.-]+/g,""))
+          volume27: Number(String(d.volume27 || 0).replace(/[^0-9.-]+/g,""))
         }));
         setData(processedData);
       }
@@ -185,31 +177,39 @@ function DashboardContent() {
     fetchData(currentSite);
   }, [currentSite]);
 
-  const calcSum = (key: keyof BpoData) => data.reduce((s, d) => s + (Number(d[key]) || 0), 0);
-  
-  const getValidCount = (key: keyof BpoData) => {
-    const count = data.filter(d => (Number(d[key]) || 0) > 0).length;
-    return count > 0 ? count : 1;
+  // ★ 両期とも正の数値が入っている有効な月のみを対象として集計
+  const getPairedMonths = (key: string) => {
+    const k26 = `${key}26` as keyof BpoData;
+    const k27 = `${key}27` as keyof BpoData;
+    return data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
   };
 
-  const calcAvg = (key: keyof BpoData) => {
-    return calcSum(key) / getValidCount(key);
+  const calcPairedSum = (key: string, term: '26' | '27') => {
+    const validMonths = getPairedMonths(key);
+    const k = `${key}${term}` as keyof BpoData;
+    return validMonths.reduce((s, d) => s + (Number(d[k]) || 0), 0);
   };
 
-  const totalSales26 = calcSum('sales26');
-  const totalSales27 = calcSum('sales27');
+  const calcPairedAvg = (key: string, term: '26' | '27') => {
+    const validMonths = getPairedMonths(key);
+    if (validMonths.length === 0) return 0;
+    return calcPairedSum(key, term) / validMonths.length;
+  };
+
+  const totalSales26 = calcPairedSum('sales', '26');
+  const totalSales27 = calcPairedSum('sales', '27');
   const salesGrowth = totalSales26 > 0 ? (((totalSales27 - totalSales26) / totalSales26) * 100).toFixed(2) : '0.00';
 
-  const avgProdSales26 = calcAvg('prodSales26');
-  const avgProdSales27 = calcAvg('prodSales27');
+  const avgProdSales26 = calcPairedAvg('prodSales', '26');
+  const avgProdSales27 = calcPairedAvg('prodSales', '27');
   const prodSalesGrowth = avgProdSales26 > 0 ? (((avgProdSales27 - avgProdSales26) / avgProdSales26) * 100).toFixed(2) : '0.00';
 
-  const avgProdAll26 = calcAvg('prodAll26');
-  const avgProdAll27 = calcAvg('prodAll27');
+  const avgProdAll26 = calcPairedAvg('prodAll', '26');
+  const avgProdAll27 = calcPairedAvg('prodAll', '27');
   const prodGrowth = avgProdAll26 > 0 ? (((avgProdAll27 - avgProdAll26) / avgProdAll26) * 100).toFixed(2) : '0.00';
 
-  const avgOpProfit26_pct = calcAvg('operatingProfit26') * 100;
-  const avgOpProfit27_pct = calcAvg('operatingProfit27') * 100;
+  const avgOpProfit26_pct = calcPairedAvg('operatingProfit', '26') * 100;
+  const avgOpProfit27_pct = calcPairedAvg('operatingProfit', '27') * 100;
   const profitGrowth = (avgOpProfit27_pct - avgOpProfit26_pct).toFixed(2);
 
   const months = ['4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月', '1月', '2月', '3月'];
@@ -273,11 +273,8 @@ function DashboardContent() {
 
   const metricAnalysis = useMemo(() => {
     return metricsList.map(item => {
-      const k26 = `${item.key}26` as keyof BpoData;
-      const k27 = `${item.key}27` as keyof BpoData;
-      
-      let v26 = item.key === 'sales' ? totalSales26 : calcAvg(k26);
-      let v27 = item.key === 'sales' ? totalSales27 : calcAvg(k27);
+      let v26 = item.key === 'sales' ? totalSales26 : calcPairedAvg(item.key, '26');
+      let v27 = item.key === 'sales' ? totalSales27 : calcPairedAvg(item.key, '27');
 
       if (item.key === 'grossProfit' || item.key === 'operatingProfit') {
         v26 = v26 * 100;
@@ -292,7 +289,7 @@ function DashboardContent() {
       let reasonText = '';
 
       if (item.key === 'sales') {
-        if (pctNum >= 5) reasonText = '26期より大幅増加。各月の実績が極めて順調に前年を超えて推移。';
+        if (pctNum >= 5) reasonText = '26期より大幅増加。各月の実績が順調に前年を超えて推移。';
         else if (pctNum >= 0) reasonText = '26期と同等水準で着地。安定した売上基盤を維持。';
         else reasonText = '26期より減少。売上金額の底上げと価格改定効果の再検証が必要。';
       } else if (item.key === 'prodSales') {
@@ -301,7 +298,7 @@ function DashboardContent() {
         else reasonText = '26期より低下。労務費工数に対する売上創出効率の改善対策が必要。';
       } else if (item.key.startsWith('prod')) {
         if (pctNum >= 10) reasonText = '26期より大幅向上。作業フローの最適化と習熟度向上が大きく寄与。';
-        else if (pctNum >= 0) reasonText = '26期より向上。全社的な処理速度が向上し工数削減に貢献。';
+        else if (pctNum >= 0) reasonText = '26期より向上。処理速度が向上し工数削減に貢献。';
         else if (pctNum >= -5) reasonText = '26期よりやや低下。ボトルネック工程の短縮と人員配置の見直しが必要。';
         else reasonText = '26期より大幅低下。作業手順の標準化とライン再構築を推奨。';
       } else if (item.key === 'error') {
@@ -340,15 +337,15 @@ function DashboardContent() {
     const list = [
       {
         name: '単価(全体)',
-        v26: calcAvg('packAll26').toFixed(2),
-        v27: calcAvg('packAll27').toFixed(2),
-        pct: calcAvg('packAll26') > 0 ? (((calcAvg('packAll27') - calcAvg('packAll26')) / calcAvg('packAll26')) * 100).toFixed(2) : '0.00'
+        v26: calcPairedAvg('packAll', '26').toFixed(2),
+        v27: calcPairedAvg('packAll', '27').toFixed(2),
+        pct: calcPairedAvg('packAll', '26') > 0 ? (((calcPairedAvg('packAll', '27') - calcPairedAvg('packAll', '26')) / calcPairedAvg('packAll', '26')) * 100).toFixed(2) : '0.00'
       }
     ];
 
     if (siteConfig.hasChikusan) {
-      const v26 = calcAvg('packChikusan26');
-      const v27 = calcAvg('packChikusan27');
+      const v26 = calcPairedAvg('packChikusan', '26');
+      const v27 = calcPairedAvg('packChikusan', '27');
       list.push({
         name: 'パック単価(畜産)',
         v26: v26.toFixed(2),
@@ -358,8 +355,8 @@ function DashboardContent() {
     }
 
     if (siteConfig.hasSuisan) {
-      const v26 = calcAvg('packSuisan26');
-      const v27 = calcAvg('packSuisan27');
+      const v26 = calcPairedAvg('packSuisan', '26');
+      const v27 = calcPairedAvg('packSuisan', '27');
       list.push({
         name: 'パック単価(水産)',
         v26: v26.toFixed(2),
@@ -369,8 +366,8 @@ function DashboardContent() {
     }
 
     if (siteConfig.hasDelica) {
-      const v26 = calcAvg('packDelica26');
-      const v27 = calcAvg('packDelica27');
+      const v26 = calcPairedAvg('packDelica', '26');
+      const v27 = calcPairedAvg('packDelica', '27');
       list.push({
         name: 'パック単価(デリカ)',
         v26: v26.toFixed(2),
@@ -381,16 +378,14 @@ function DashboardContent() {
 
     if (siteConfig.hasShowaDepts) {
       const depts = [
-        { key: 'Ricos', name: '単価(リコス)' },
-        { key: 'Ikkatsu', name: '単価(一括)' },
-        { key: 'Bronco', name: '単価(ブロンコビリー)' },
-        { key: 'Hanyou', name: '単価(汎用)' },
+        { key: 'packRicos', name: '単価(リコス)' },
+        { key: 'packIkkatsu', name: '単価(一括)' },
+        { key: 'packBronco', name: '単価(ブロンコビリー)' },
+        { key: 'packHanyou', name: '単価(汎用)' },
       ];
       depts.forEach(d => {
-        const k26 = `pack${d.key}26` as keyof BpoData;
-        const k27 = `pack${d.key}27` as keyof BpoData;
-        const v26 = calcAvg(k26);
-        const v27 = calcAvg(k27);
+        const v26 = calcPairedAvg(d.key, '26');
+        const v27 = calcPairedAvg(d.key, '27');
         list.push({
           name: d.name,
           v26: v26.toFixed(2),
@@ -734,11 +729,11 @@ function DashboardContent() {
                       .map((m, idx) => {
                         const s26 = m.sales26 || 0;
                         const s27 = m.sales27 || 0;
-                        const sPct = s26 > 0 ? (((s27 - s26) / s26) * 100).toFixed(2) : '0.00';
+                        const sPct = (s26 > 0 && s27 > 0) ? (((s27 - s26) / s26) * 100).toFixed(2) : null;
                         
                         const p26 = m.prodAll26 || 0;
                         const p27 = m.prodAll27 || 0;
-                        const pPct = p26 > 0 ? (((p27 - p26) / p26) * 100).toFixed(2) : '0.00';
+                        const pPct = (p26 > 0 && p27 > 0) ? (((p27 - p26) / p26) * 100).toFixed(2) : null;
 
                         return (
                           <div
@@ -754,18 +749,22 @@ function DashboardContent() {
                                 <span className="text-xs font-bold text-slate-500 mb-0.5">売上</span>
                                 <div className="text-right flex items-baseline">
                                   <strong className="text-base font-black text-slate-900 leading-none tracking-tight">{formatValue('sales', s27)}</strong>
-                                  <span className={`ml-1.5 text-[10px] font-black ${Number(sPct) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                    ({Number(sPct) >= 0 ? '+' : ''}{sPct}%)
-                                  </span>
+                                  {sPct !== null && (
+                                    <span className={`ml-1.5 text-[10px] font-black ${Number(sPct) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                      ({Number(sPct) >= 0 ? '+' : ''}{sPct}%)
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex items-end justify-between border-b border-slate-200 pb-1">
                                 <span className="text-xs font-bold text-slate-500 mb-0.5">作業生産性</span>
                                 <div className="text-right flex items-baseline">
                                   <strong className="text-base font-black text-slate-900 leading-none tracking-tight">{formatValue('prodAll', p27)}</strong>
-                                  <span className={`ml-1.5 text-[10px] font-black ${Number(pPct) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                    ({Number(pPct) >= 0 ? '+' : ''}{pPct}%)
-                                  </span>
+                                  {pPct !== null && (
+                                    <span className={`ml-1.5 text-[10px] font-black ${Number(pPct) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                      ({Number(pPct) >= 0 ? '+' : ''}{pPct}%)
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -870,6 +869,7 @@ function DashboardContent() {
 
             </div>
           )}
+
           {activeTab === 'heatmap' && (
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
               <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6 pb-3 border-b border-slate-100">
@@ -910,11 +910,12 @@ function DashboardContent() {
                       const k26 = `${m.key}26` as keyof BpoData;
                       const k27 = `${m.key}27` as keyof BpoData;
                       
-                      const activeMonths = data.filter(d => (Number(d[k27]) || 0) > 0);
-                      const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
+                      // ★ 26期・27期双方が > 0 の月のみを半期平均前年比の母数として計算
+                      const pairedMonths = data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+                      const validCount = pairedMonths.length > 0 ? pairedMonths.length : 1;
 
-                      let sum26 = activeMonths.reduce((sum, d) => sum + (Number(d[k26]) || 0), 0);
-                      let sum27 = activeMonths.reduce((sum, d) => sum + (Number(d[k27]) || 0), 0);
+                      let sum26 = pairedMonths.reduce((sum, d) => sum + (Number(d[k26]) || 0), 0);
+                      let sum27 = pairedMonths.reduce((sum, d) => sum + (Number(d[k27]) || 0), 0);
 
                       let avg26 = m.key === 'sales' ? sum26 : sum26 / validCount;
                       let avg27 = m.key === 'sales' ? sum27 : sum27 / validCount;
@@ -924,7 +925,8 @@ function DashboardContent() {
                         avg27 = avg27 * 100;
                       }
 
-                      const totalDiffPct = avg26 > 0 ? ((avg27 - avg26) / avg26) * 100 : 0;
+                      const hasValidPaired = pairedMonths.length > 0;
+                      const totalDiffPct = (hasValidPaired && avg26 > 0) ? ((avg27 - avg26) / avg26) * 100 : 0;
 
                       return (
                         <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
@@ -941,8 +943,9 @@ function DashboardContent() {
                               v27 = v27 * 100;
                             }
 
-                            const diffPct = v26 > 0 ? ((v27 - v26) / v26) * 100 : 0;
-                            const isMissing = monthData[k26] === undefined && monthData[k27] === undefined;
+                            // ★ 片方が0の場合は両方0としてスルー（ー表示）
+                            const isBothActive = v26 > 0 && v27 > 0;
+                            const diffPct = isBothActive ? ((v27 - v26) / v26) * 100 : 0;
                             
                             if (m.key === 'dx' && v26 === 0 && v27 === 0) {
                               return (
@@ -958,7 +961,7 @@ function DashboardContent() {
 
                             return (
                               <td key={monthData.period} className="py-2 px-1.5 text-center">
-                                {!isMissing ? (
+                                {isBothActive ? (
                                   <div className={`p-2.5 rounded-xl border flex flex-col justify-center gap-1 shadow-2xs ${cellBg} min-w-[110px]`}>
                                     <div className="flex justify-between items-end w-full leading-none">
                                       <span className="text-[10px] font-medium opacity-80">26期</span>
@@ -975,7 +978,7 @@ function DashboardContent() {
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="py-2 px-1 rounded-xl bg-slate-100 text-slate-400 text-center font-bold text-xs min-w-[110px]">
+                                  <div className="py-4 px-1 rounded-xl bg-slate-50/50 border border-slate-100 text-slate-300 text-center font-black text-sm min-w-[110px]">
                                     ー
                                   </div>
                                 )}
@@ -983,7 +986,7 @@ function DashboardContent() {
                             );
                           })}
                           <td className="py-3 px-4 text-right font-bold text-slate-900">
-                            {m.key === 'dx' && avg26 === 0 && avg27 === 0 ? (
+                            {(!hasValidPaired || (m.key === 'dx' && avg26 === 0 && avg27 === 0)) ? (
                               <span className="inline-block px-4 py-1.5 rounded-lg text-[13px] font-black bg-slate-50 text-slate-300 border border-slate-100">
                                 ー
                               </span>
@@ -1000,92 +1003,6 @@ function DashboardContent() {
                     })}
                   </tbody>
                 </table>
-              </div>
-
-              {/* 予算営業利益 (仮) セクション */}
-              <div className="mt-8 pt-6 border-t border-slate-200/80">
-                <div className="flex items-center gap-2 mb-4">
-                  <DollarSign className="w-5 h-5 text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-900">予算営業利益 (仮)</h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
-                        <th className="py-3 px-4 min-w-[180px]">項目名</th>
-                        {displayData.map(d => (
-                          <th key={d.period} className="py-3 px-2 text-center min-w-[120px]">{d.period}</th>
-                        ))}
-                        <th className="py-3 px-4 text-right min-w-[120px]">半期平均前年比</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {(() => {
-                        const activeMonths = data.filter(d => (Number(d.budgetOperatingProfit27) || 0) > 0);
-                        const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
-
-                        const sum26 = activeMonths.reduce((s, d) => s + (Number(d.budgetOperatingProfit26) || 0), 0);
-                        const sum27 = activeMonths.reduce((s, d) => s + (Number(d.budgetOperatingProfit27) || 0), 0);
-
-                        const avg26 = sum26 / validCount;
-                        const avg27 = sum27 / validCount;
-                        const totalDiffPct = avg26 > 0 ? ((avg27 - avg26) / avg26) * 100 : 0;
-
-                        return (
-                          <tr className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-3 px-4 font-bold text-slate-800">
-                              予算営業利益 (仮)
-                              <span className="block text-[10px] font-normal text-slate-400">月次予算営業利益の推移</span>
-                            </td>
-                            {displayData.map(monthData => {
-                              const v26 = Number(monthData.budgetOperatingProfit26) || 0;
-                              const v27 = Number(monthData.budgetOperatingProfit27) || 0;
-                              const diffPct = v26 > 0 ? ((v27 - v26) / v26) * 100 : 0;
-                              const cellBg = getHeatmapBg(diffPct, false, true);
-
-                              return (
-                                <td key={monthData.period} className="py-2 px-1.5 text-center">
-                                  {(v26 > 0 || v27 > 0) ? (
-                                    <div className={`p-2.5 rounded-xl border flex flex-col justify-center gap-1 shadow-2xs ${cellBg} min-w-[110px]`}>
-                                      <div className="flex justify-between items-end w-full leading-none">
-                                        <span className="text-[10px] font-medium opacity-80 text-slate-500">26期</span>
-                                        <span className="text-sm font-bold text-slate-800">{formatValue('budgetOperatingProfit', v26)}</span>
-                                      </div>
-                                      <div className="flex justify-between items-end w-full leading-none mt-1">
-                                        <span className="text-[10px] font-medium opacity-80 text-slate-500">27期</span>
-                                        <span className="text-sm font-black text-slate-900">{formatValue('budgetOperatingProfit', v27)}</span>
-                                      </div>
-                                      <div className="w-full mt-1.5 pt-1.5 border-t border-slate-200 flex justify-end items-center">
-                                        <span className={`text-[13px] font-black tracking-tight ${diffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                          {diffPct >= 0 ? '+' : ''}{diffPct.toFixed(2)}%
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="py-4 px-1 rounded-xl bg-slate-50/50 border border-slate-100 text-slate-300 text-center font-black text-sm min-w-[110px]">
-                                      ー
-                                    </div>
-                                  )}
-                                </td>
-                              );
-                            })}
-                            <td className="py-3 px-4 text-right font-bold text-slate-900">
-                              {avg26 > 0 || avg27 > 0 ? (
-                                <span className={`inline-block px-3 py-1.5 rounded-lg text-[13px] font-black border bg-slate-50 border-slate-200 ${totalDiffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                  {totalDiffPct >= 0 ? '+' : ''}{totalDiffPct.toFixed(2)}%
-                                </span>
-                              ) : (
-                                <span className="inline-block px-4 py-1.5 rounded-lg text-[13px] font-black bg-slate-50 text-slate-300 border border-slate-100">
-                                  ー
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })()}
-                    </tbody>
-                  </table>
-                </div>
               </div>
 
               {/* 売上単価 ＋ 総物量指標 (月別推移) */}
@@ -1110,15 +1027,17 @@ function DashboardContent() {
                         const k26 = `${m.key}26` as keyof BpoData;
                         const k27 = `${m.key}27` as keyof BpoData;
                         
-                        const activeMonths = data.filter(d => (Number(d[k27]) || 0) > 0);
-                        const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
+                        // ★ 片方0除外
+                        const pairedMonths = data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+                        const validCount = pairedMonths.length > 0 ? pairedMonths.length : 1;
 
-                        const sum26 = activeMonths.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
-                        const sum27 = activeMonths.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
+                        const sum26 = pairedMonths.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
+                        const sum27 = pairedMonths.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
 
                         const avg26 = sum26 / validCount;
                         const avg27 = sum27 / validCount;
-                        const totalDiffPct = avg26 > 0 ? ((avg27 - avg26) / avg26) * 100 : 0;
+                        const hasValidPaired = pairedMonths.length > 0;
+                        const totalDiffPct = (hasValidPaired && avg26 > 0) ? ((avg27 - avg26) / avg26) * 100 : 0;
 
                         return (
                           <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
@@ -1129,15 +1048,13 @@ function DashboardContent() {
                             {displayData.map(monthData => {
                               const v26 = Number(monthData[k26]) || 0;
                               const v27 = Number(monthData[k27]) || 0;
-                              const diffPct = v26 > 0 ? ((v27 - v26) / v26) * 100 : 0;
-                              
+                              const isBothActive = v26 > 0 && v27 > 0;
+                              const diffPct = isBothActive ? ((v27 - v26) / v26) * 100 : 0;
                               const cellBg = getHeatmapBg(diffPct, m.isReverse, true);
-
-                              const isMissing = monthData[k26] === undefined && monthData[k27] === undefined;
 
                               return (
                                 <td key={monthData.period} className="py-2 px-1.5 text-center">
-                                  {!isMissing ? (
+                                  {isBothActive ? (
                                     <div className={`p-2.5 rounded-xl border flex flex-col justify-center gap-1 shadow-2xs ${cellBg} min-w-[110px]`}>
                                       <div className="flex justify-between items-end w-full leading-none">
                                         <span className="text-[10px] font-medium opacity-80 text-slate-500">26期</span>
@@ -1154,7 +1071,7 @@ function DashboardContent() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="py-2 px-1 rounded-xl bg-slate-100 text-slate-400 text-center font-bold text-xs min-w-[110px]">
+                                    <div className="py-4 px-1 rounded-xl bg-slate-50/50 border border-slate-100 text-slate-300 text-center font-black text-sm min-w-[110px]">
                                       ー
                                     </div>
                                   )}
@@ -1162,9 +1079,15 @@ function DashboardContent() {
                               );
                             })}
                             <td className="py-3 px-4 text-right font-bold text-slate-900">
-                              <span className={`inline-block px-3 py-1.5 rounded-lg text-[13px] font-black border bg-slate-50 border-slate-200 ${totalDiffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                {totalDiffPct >= 0 ? '+' : ''}{totalDiffPct.toFixed(2)}%
-                              </span>
+                              {!hasValidPaired ? (
+                                <span className="inline-block px-4 py-1.5 rounded-lg text-[13px] font-black bg-slate-50 text-slate-300 border border-slate-100">
+                                  ー
+                                </span>
+                              ) : (
+                                <span className={`inline-block px-3 py-1.5 rounded-lg text-[13px] font-black border bg-slate-50 border-slate-200 ${totalDiffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {totalDiffPct >= 0 ? '+' : ''}{totalDiffPct.toFixed(2)}%
+                                </span>
+                              )}
                             </td>
                           </tr>
                         );
@@ -1306,18 +1229,10 @@ function DashboardContent() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {packMetricsList.map(m => {
-                        const k26 = `${m.key}26` as keyof BpoData;
-                        const k27 = `${m.key}27` as keyof BpoData;
-                        const activeMonths = data.filter(d => (Number(d[k27]) || 0) > 0);
-                        const validCount = activeMonths.length > 0 ? activeMonths.length : 1;
-
-                        const sum26 = activeMonths.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
-                        const sum27 = activeMonths.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
-
-                        const avg26 = sum26 / validCount;
-                        const avg27 = sum27 / validCount;
-                        const diff = avg27 - avg26;
-                        const pct = avg26 > 0 ? (diff / avg26) * 100 : 0;
+                        const v26 = calcPairedAvg(m.key, '26');
+                        const v27 = calcPairedAvg(m.key, '27');
+                        const diff = v27 - v26;
+                        const pct = v26 > 0 ? (diff / v26) * 100 : 0;
                         const isGood = pct >= 0;
 
                         return (
@@ -1326,8 +1241,8 @@ function DashboardContent() {
                               {m.name}
                               <span className="block text-[10px] font-normal text-slate-400">{m.desc}</span>
                             </td>
-                            <td className="py-3.5 px-4 text-right font-medium text-slate-600">{formatValue(m.key, avg26)}{m.unit}</td>
-                            <td className="py-3.5 px-4 text-right font-bold text-slate-900">{formatValue(m.key, avg27)}{m.unit}</td>
+                            <td className="py-3.5 px-4 text-right font-medium text-slate-600">{formatValue(m.key, v26)}{m.unit}</td>
+                            <td className="py-3.5 px-4 text-right font-bold text-slate-900">{formatValue(m.key, v27)}{m.unit}</td>
                             <td className="py-3.5 px-4 text-right font-bold text-slate-700">
                               {diff >= 0 ? '+' : ''}{formatValue(m.key, diff)}{m.unit}
                             </td>

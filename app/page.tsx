@@ -38,7 +38,6 @@ export default function PortalPage() {
         
         {/* ヘッダー */}
         <div className="text-center mb-10 flex flex-col items-center">
-          {/* ★ 赤枠の位置：枠なし・背景なしのPALロゴ */}
           <div className="mb-4 h-12 flex items-center justify-center">
             <img
               src="/pal-logo.png"
@@ -65,10 +64,20 @@ export default function PortalPage() {
               className="group bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between"
             >
               <div>
-                {/* 拠点ロゴ（枠・背景なしで直接配置） ＋ 拠点タイトル */}
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="shrink-0 flex items-center justify-center h-16 w-16">
-                    <img src={site.image} alt={site.name} className="h-full w-full object-contain" />
+                  <div className="shrink-0 flex items-center justify-center h-16 w-16 bg-white rounded-2xl overflow-hidden border border-slate-100">
+                    <img
+                      src={site.image}
+                      alt={site.name}
+                      className="h-full w-full object-contain p-1"
+                      onError={(e) => {
+                        // 拡張子の差異防止（念のため）
+                        const target = e.currentTarget;
+                        if (!target.src.endsWith('.png')) {
+                          target.src = '/syowa.jpg';
+                        }
+                      }}
+                    />
                   </div>
                   <div>
                     <h2 className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight">
