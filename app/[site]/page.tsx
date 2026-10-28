@@ -4,7 +4,28 @@ import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
-  TrendingUp, TrendingDown, AlertTriangle, RefreshCw, MessageSquareText, CheckCircle2, XCircle, LayoutGrid, Table, Clock, Trophy, Target, ShieldCheck, Tag, EyeOff, Eye, ArrowLeft, Package, DollarSign
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  RefreshCw,
+  MessageSquareText,
+  CheckCircle2,
+  XCircle,
+  LayoutGrid,
+  Table,
+  Clock,
+  Trophy,
+  Target,
+  ShieldCheck,
+  Tag,
+  EyeOff,
+  Eye,
+  ArrowLeft,
+  Package,
+  DollarSign,
+  BarChart3,
+  PieChart,
+  Layers
 } from 'lucide-react';
 
 interface BpoData {
@@ -14,6 +35,7 @@ interface BpoData {
   volume26: number; volume27: number;
   prodSales26: number; prodSales27: number;
   prodAll26: number; prodAll27: number;
+  // 一般拠点部門
   prodChikusan26: number; prodChikusan27: number;
   prodSuisan26: number; prodSuisan27: number;
   prodDelica26?: number; prodDelica27?: number;
@@ -21,6 +43,15 @@ interface BpoData {
   packChikusan26: number; packChikusan27: number;
   packSuisan26: number; packSuisan27: number;
   packDelica26?: number; packDelica27?: number;
+  // 昭和冷蔵専用部門
+  prodRicos26?: number; prodRicos27?: number;
+  prodIkkatsu26?: number; prodIkkatsu27?: number;
+  prodBronco26?: number; prodBronco27?: number;
+  prodHanyou26?: number; prodHanyou27?: number;
+  packRicos26?: number; packRicos27?: number;
+  packIkkatsu26?: number; packIkkatsu27?: number;
+  packBronco26?: number; packBronco27?: number;
+  packHanyou26?: number; packHanyou27?: number;
   error26: number; error27: number; isWarning: boolean;
   dx26: number; dx27: number;
   grossProfit26: number; grossProfit27: number;
@@ -33,24 +64,35 @@ const SITE_CONFIGS: Record<string, {
   hasChikusan: boolean;
   hasSuisan: boolean;
   hasDelica: boolean;
+  hasShowaDepts?: boolean;
 }> = {
   yamanaka: {
     name: 'ヤマナカ センター',
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: false,
+    hasShowaDepts: false,
   },
   bisai: {
     name: 'AFS尾西 センター',
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: true,
+    hasShowaDepts: false,
   },
   tokyu: {
     name: '東急ストア センター',
     hasChikusan: true,
     hasSuisan: false,
     hasDelica: false,
+    hasShowaDepts: false,
+  },
+  showa: {
+    name: '昭和冷蔵 センター',
+    hasChikusan: false,
+    hasSuisan: false,
+    hasDelica: false,
+    hasShowaDepts: true,
   },
 };
 
@@ -71,6 +113,10 @@ const formatValue = (key: string, value: number) => {
     case 'packChikusan':
     case 'packSuisan':
     case 'packDelica':
+    case 'packRicos':
+    case 'packIkkatsu':
+    case 'packBronco':
+    case 'packHanyou':
       return `¥${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     case 'error':
       return `${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
@@ -80,6 +126,10 @@ const formatValue = (key: string, value: number) => {
     case 'prodChikusan':
     case 'prodSuisan':
     case 'prodDelica':
+    case 'prodRicos':
+    case 'prodIkkatsu':
+    case 'prodBronco':
+    case 'prodHanyou':
       return Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     case 'grossProfit':
     case 'operatingProfit':
@@ -94,9 +144,10 @@ function DashboardContent() {
   const currentSite = (params?.site as string) || 'yamanaka';
   const siteConfig = SITE_CONFIGS[currentSite] || {
     name: `${currentSite} センター`,
-    hasChikusan: true,
-    hasSuisan: true,
+    hasChikusan: false,
+    hasSuisan: false,
     hasDelica: false,
+    hasShowaDepts: false,
   };
   const siteDisplayName = siteConfig.name;
 
@@ -201,6 +252,15 @@ function DashboardContent() {
       list.push({ id: idCounter++, key: 'prodDelica', name: `${idCounter - 1}. 作業生産性(デリカ)`, unit: '', isReverse: false, desc: 'デリカ加工部門の作業効率' });
     }
 
+    if (siteConfig.hasShowaDepts) {
+      list.push(
+        { id: idCounter++, key: 'prodRicos', name: `${idCounter - 1}. 作業生産性(リコス)`, unit: '', isReverse: false, desc: 'リコス部門の作業効率' },
+        { id: idCounter++, key: 'prodIkkatsu', name: `${idCounter - 1}. 作業生産性(一括)`, unit: '', isReverse: false, desc: '一括部門の作業効率' },
+        { id: idCounter++, key: 'prodBronco', name: `${idCounter - 1}. 作業生産性(ブロンコビリー)`, unit: '', isReverse: false, desc: 'ブロンコビリー部門の作業効率' },
+        { id: idCounter++, key: 'prodHanyou', name: `${idCounter - 1}. 作業生産性(汎用)`, unit: '', isReverse: false, desc: '汎用部門の作業効率' }
+      );
+    }
+
     list.push(
       { id: idCounter++, key: 'error', name: `${idCounter - 1}. 事故評価(エラー率)`, unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)' },
       { id: idCounter++, key: 'dx', name: `${idCounter - 1}. DX評価`, unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標' },
@@ -279,7 +339,7 @@ function DashboardContent() {
   const packUnitSummary = useMemo(() => {
     const list = [
       {
-        name: 'パック単価(全体)',
+        name: '単価(全体)',
         v26: calcAvg('packAll26').toFixed(2),
         v27: calcAvg('packAll27').toFixed(2),
         pct: calcAvg('packAll26') > 0 ? (((calcAvg('packAll27') - calcAvg('packAll26')) / calcAvg('packAll26')) * 100).toFixed(2) : '0.00'
@@ -316,6 +376,27 @@ function DashboardContent() {
         v26: v26.toFixed(2),
         v27: v27.toFixed(2),
         pct: v26 > 0 ? (((v27 - v26) / v26) * 100).toFixed(2) : '0.00'
+      });
+    }
+
+    if (siteConfig.hasShowaDepts) {
+      const depts = [
+        { key: 'Ricos', name: '単価(リコス)' },
+        { key: 'Ikkatsu', name: '単価(一括)' },
+        { key: 'Bronco', name: '単価(ブロンコビリー)' },
+        { key: 'Hanyou', name: '単価(汎用)' },
+      ];
+      depts.forEach(d => {
+        const k26 = `pack${d.key}26` as keyof BpoData;
+        const k27 = `pack${d.key}27` as keyof BpoData;
+        const v26 = calcAvg(k26);
+        const v27 = calcAvg(k27);
+        list.push({
+          name: d.name,
+          v26: v26.toFixed(2),
+          v27: v27.toFixed(2),
+          pct: v26 > 0 ? (((v27 - v26) / v26) * 100).toFixed(2) : '0.00'
+        });
       });
     }
 
@@ -367,7 +448,7 @@ function DashboardContent() {
   const packMetricsList = useMemo(() => {
     const list = [
       { id: 'volume', key: 'volume', name: '総物量 (全体)', unit: '', isReverse: false, desc: '月次の処理総物量' },
-      { id: 'packAll', key: 'packAll', name: 'パック単価(全体)', unit: '', isReverse: false, desc: '商品1パックあたりの平均単価' }
+      { id: 'packAll', key: 'packAll', name: '単価(全体)', unit: '', isReverse: false, desc: '商品1個/パックあたりの平均単価' }
     ];
     if (siteConfig.hasChikusan) {
       list.push({ id: 'packChikusan', key: 'packChikusan', name: 'パック単価(畜産)', unit: '', isReverse: false, desc: '畜産商品のパック単価' });
@@ -377,6 +458,14 @@ function DashboardContent() {
     }
     if (siteConfig.hasDelica) {
       list.push({ id: 'packDelica', key: 'packDelica', name: 'パック単価(デリカ)', unit: '', isReverse: false, desc: 'デリカ商品のパック単価' });
+    }
+    if (siteConfig.hasShowaDepts) {
+      list.push(
+        { id: 'packRicos', key: 'packRicos', name: '単価(リコス)', unit: '', isReverse: false, desc: 'リコス商品の平均単価' },
+        { id: 'packIkkatsu', key: 'packIkkatsu', name: '単価(一括)', unit: '', isReverse: false, desc: '一括商品の平均単価' },
+        { id: 'packBronco', key: 'packBronco', name: '単価(ブロンコビリー)', unit: '', isReverse: false, desc: 'ブロンコビリー商品の平均単価' },
+        { id: 'packHanyou', key: 'packHanyou', name: '単価(汎用)', unit: '', isReverse: false, desc: '汎用商品の平均単価' }
+      );
     }
     return list;
   }, [siteConfig]);
@@ -781,7 +870,6 @@ function DashboardContent() {
 
             </div>
           )}
-
           {activeTab === 'heatmap' && (
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
               <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6 pb-3 border-b border-slate-100">
@@ -914,7 +1002,7 @@ function DashboardContent() {
                 </table>
               </div>
 
-              {/* ★ 新設：予算営業利益（タイトル仮）セクション */}
+              {/* 予算営業利益 (仮) セクション */}
               <div className="mt-8 pt-6 border-t border-slate-200/80">
                 <div className="flex items-center gap-2 mb-4">
                   <DollarSign className="w-5 h-5 text-indigo-600" />
@@ -954,11 +1042,10 @@ function DashboardContent() {
                               const v27 = Number(monthData.budgetOperatingProfit27) || 0;
                               const diffPct = v26 > 0 ? ((v27 - v26) / v26) * 100 : 0;
                               const cellBg = getHeatmapBg(diffPct, false, true);
-                              const isMissing = monthData.budgetOperatingProfit26 === undefined && monthData.budgetOperatingProfit27 === undefined;
 
                               return (
                                 <td key={monthData.period} className="py-2 px-1.5 text-center">
-                                  {!isMissing && (v26 > 0 || v27 > 0) ? (
+                                  {(v26 > 0 || v27 > 0) ? (
                                     <div className={`p-2.5 rounded-xl border flex flex-col justify-center gap-1 shadow-2xs ${cellBg} min-w-[110px]`}>
                                       <div className="flex justify-between items-end w-full leading-none">
                                         <span className="text-[10px] font-medium opacity-80 text-slate-500">26期</span>
@@ -975,7 +1062,7 @@ function DashboardContent() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="py-2 px-1 rounded-xl bg-slate-100 text-slate-400 text-center font-bold text-xs min-w-[110px]">
+                                    <div className="py-4 px-1 rounded-xl bg-slate-50/50 border border-slate-100 text-slate-300 text-center font-black text-sm min-w-[110px]">
                                       ー
                                     </div>
                                   )}

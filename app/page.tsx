@@ -23,6 +23,12 @@ const sites = [
     desc: '東急ストア BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/tokyu.png',
   },
+  {
+    id: 'showa',
+    name: '昭和冷蔵 センター',
+    desc: '昭和冷蔵 BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/syowa.jpg',
+  },
 ];
 
 export default function PortalPage() {
