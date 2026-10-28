@@ -7,25 +7,25 @@ import { ArrowRight, LayoutDashboard } from 'lucide-react';
 const sites = [
   {
     id: 'yamanaka',
-    name: 'ヤマナカ センター',
+    name: 'ヤマナカ',
     desc: 'ヤマナカ BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/yamanaka.png',
   },
   {
     id: 'bisai',
-    name: 'AFS尾西 センター',
+    name: 'AFS尾西',
     desc: 'AFS尾西 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/bisai.png',
   },
   {
     id: 'tokyu',
-    name: '東急ストア センター',
+    name: '東急ストア',
     desc: '東急ストア BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/tokyu.png',
   },
   {
     id: 'showa',
-    name: '昭和冷蔵 センター',
+    name: '昭和冷蔵',
     desc: '昭和冷蔵 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/syowa.jpg',
   },
@@ -52,7 +52,7 @@ export default function PortalPage() {
           </div>
 
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
-          <p className="text-slate-500 text-sm font-semibold mt-2">閲覧するセンターを選択してください</p>
+          <p className="text-slate-500 text-sm font-semibold mt-2">閲覧する拠点を選択してください</p>
         </div>
 
         {/* 現場カード一覧 */}
@@ -71,7 +71,6 @@ export default function PortalPage() {
                       alt={site.name}
                       className="h-full w-full object-contain p-1"
                       onError={(e) => {
-                        // 拡張子の差異防止（念のため）
                         const target = e.currentTarget;
                         if (!target.src.endsWith('.png')) {
                           target.src = '/syowa.jpg';
