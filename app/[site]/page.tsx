@@ -48,6 +48,11 @@ interface BpoData {
   packIkkatsu26?: number; packIkkatsu27?: number;
   packBronco26?: number; packBronco27?: number;
   packHanyou26?: number; packHanyou27?: number;
+  // 尾家産業専用部門（阪南、NSC）
+  prodHannan26?: number; prodHannan27?: number;
+  prodNsc26?: number; prodNsc27?: number;
+  packHannan26?: number; packHannan27?: number;
+  packNsc26?: number; packNsc27?: number;
   error26: number; error27: number; isWarning: boolean;
   dx26: number; dx27: number;
   grossProfit26: number; grossProfit27: number;
@@ -60,34 +65,47 @@ const SITE_CONFIGS: Record<string, {
   hasSuisan: boolean;
   hasDelica: boolean;
   hasShowaDepts?: boolean;
+  hasOieDepts?: boolean;
 }> = {
   yamanaka: {
-    name: 'ヤマナカ センター',
+    name: 'ヤマナカ',
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: false,
     hasShowaDepts: false,
+    hasOieDepts: false,
   },
   bisai: {
-    name: 'AFS尾西 センター',
+    name: 'AFS尾西',
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: true,
     hasShowaDepts: false,
+    hasOieDepts: false,
   },
   tokyu: {
-    name: '東急ストア センター',
+    name: '東急ストア',
     hasChikusan: true,
     hasSuisan: false,
     hasDelica: false,
     hasShowaDepts: false,
+    hasOieDepts: false,
   },
   showa: {
-    name: '昭和冷蔵 センター',
+    name: '昭和冷蔵',
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
     hasShowaDepts: true,
+    hasOieDepts: false,
+  },
+  oie: {
+    name: '尾家産業',
+    hasChikusan: false,
+    hasSuisan: false,
+    hasDelica: false,
+    hasShowaDepts: false,
+    hasOieDepts: true,
   },
 };
 
@@ -111,6 +129,8 @@ const formatValue = (key: string, value: number) => {
     case 'packIkkatsu':
     case 'packBronco':
     case 'packHanyou':
+    case 'packHannan':
+    case 'packNsc':
       return `¥${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     case 'error':
       return `${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
@@ -124,6 +144,8 @@ const formatValue = (key: string, value: number) => {
     case 'prodIkkatsu':
     case 'prodBronco':
     case 'prodHanyou':
+    case 'prodHannan':
+    case 'prodNsc':
       return Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     case 'grossProfit':
     case 'operatingProfit':
@@ -137,11 +159,12 @@ function DashboardContent() {
   const params = useParams();
   const currentSite = (params?.site as string) || 'yamanaka';
   const siteConfig = SITE_CONFIGS[currentSite] || {
-    name: `${currentSite} センター`,
+    name: `${currentSite}`,
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
     hasShowaDepts: false,
+    hasOieDepts: false,
   };
   const siteDisplayName = siteConfig.name;
 
@@ -177,7 +200,6 @@ function DashboardContent() {
     fetchData(currentSite);
   }, [currentSite]);
 
-  // ★ 両期とも正の数値が入っている有効な月のみを対象として集計
   const getPairedMonths = (key: string) => {
     const k26 = `${key}26` as keyof BpoData;
     const k27 = `${key}27` as keyof BpoData;
@@ -261,6 +283,13 @@ function DashboardContent() {
       );
     }
 
+    if (siteConfig.hasOieDepts) {
+      list.push(
+        { id: idCounter++, key: 'prodHannan', name: `${idCounter - 1}. 作業生産性(阪南)`, unit: '', isReverse: false, desc: '阪南部門の作業効率' },
+        { id: idCounter++, key: 'prodNsc', name: `${idCounter - 1}. 作業生産性(NSC)`, unit: '', isReverse: false, desc: 'NSC部門の作業効率' }
+      );
+    }
+
     list.push(
       { id: idCounter++, key: 'error', name: `${idCounter - 1}. 事故評価(エラー率)`, unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)' },
       { id: idCounter++, key: 'dx', name: `${idCounter - 1}. DX評価`, unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標' },
@@ -283,7 +312,6 @@ function DashboardContent() {
 
       const diff = v27 - v26;
       const pctNum = v26 > 0 ? (diff / v26) * 100 : 0;
-      
       const isGood = item.isReverse ? diff <= 0 : diff >= 0;
 
       let reasonText = '';
@@ -334,9 +362,10 @@ function DashboardContent() {
     });
   }, [totalSales26, totalSales27, data, metricsList]);
   const packUnitSummary = useMemo(() => {
+    const unitTitle = siteConfig.hasOieDepts ? 'タッチ単価(全体)' : '単価(全体)';
     const list = [
       {
-        name: '単価(全体)',
+        name: unitTitle,
         v26: calcPairedAvg('packAll', '26').toFixed(2),
         v27: calcPairedAvg('packAll', '27').toFixed(2),
         pct: calcPairedAvg('packAll', '26') > 0 ? (((calcPairedAvg('packAll', '27') - calcPairedAvg('packAll', '26')) / calcPairedAvg('packAll', '26')) * 100).toFixed(2) : '0.00'
@@ -382,6 +411,23 @@ function DashboardContent() {
         { key: 'packIkkatsu', name: '単価(一括)' },
         { key: 'packBronco', name: '単価(ブロンコビリー)' },
         { key: 'packHanyou', name: '単価(汎用)' },
+      ];
+      depts.forEach(d => {
+        const v26 = calcPairedAvg(d.key, '26');
+        const v27 = calcPairedAvg(d.key, '27');
+        list.push({
+          name: d.name,
+          v26: v26.toFixed(2),
+          v27: v27.toFixed(2),
+          pct: v26 > 0 ? (((v27 - v26) / v26) * 100).toFixed(2) : '0.00'
+        });
+      });
+    }
+
+    if (siteConfig.hasOieDepts) {
+      const depts = [
+        { key: 'packHannan', name: 'タッチ単価(阪南)' },
+        { key: 'packNsc', name: 'タッチ単価(NSC)' },
       ];
       depts.forEach(d => {
         const v26 = calcPairedAvg(d.key, '26');
@@ -441,9 +487,10 @@ function DashboardContent() {
   }, [metricAnalysis]);
 
   const packMetricsList = useMemo(() => {
+    const unitTitle = siteConfig.hasOieDepts ? 'タッチ単価(全体)' : '単価(全体)';
     const list = [
       { id: 'volume', key: 'volume', name: '総物量 (全体)', unit: '', isReverse: false, desc: '月次の処理総物量' },
-      { id: 'packAll', key: 'packAll', name: '単価(全体)', unit: '', isReverse: false, desc: '商品1個/パックあたりの平均単価' }
+      { id: 'packAll', key: 'packAll', name: unitTitle, unit: '', isReverse: false, desc: '商品1点あたりの平均単価' }
     ];
     if (siteConfig.hasChikusan) {
       list.push({ id: 'packChikusan', key: 'packChikusan', name: 'パック単価(畜産)', unit: '', isReverse: false, desc: '畜産商品のパック単価' });
@@ -460,6 +507,12 @@ function DashboardContent() {
         { id: 'packIkkatsu', key: 'packIkkatsu', name: '単価(一括)', unit: '', isReverse: false, desc: '一括商品の平均単価' },
         { id: 'packBronco', key: 'packBronco', name: '単価(ブロンコビリー)', unit: '', isReverse: false, desc: 'ブロンコビリー商品の平均単価' },
         { id: 'packHanyou', key: 'packHanyou', name: '単価(汎用)', unit: '', isReverse: false, desc: '汎用商品の平均単価' }
+      );
+    }
+    if (siteConfig.hasOieDepts) {
+      list.push(
+        { id: 'packHannan', key: 'packHannan', name: 'タッチ単価(阪南)', unit: '', isReverse: false, desc: '阪南部門のタッチ単価' },
+        { id: 'packNsc', key: 'packNsc', name: 'タッチ単価(NSC)', unit: '', isReverse: false, desc: 'NSC部門のタッチ単価' }
       );
     }
     return list;
@@ -910,7 +963,6 @@ function DashboardContent() {
                       const k26 = `${m.key}26` as keyof BpoData;
                       const k27 = `${m.key}27` as keyof BpoData;
                       
-                      // ★ 26期・27期双方が > 0 の月のみを半期平均前年比の母数として計算
                       const pairedMonths = data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
                       const validCount = pairedMonths.length > 0 ? pairedMonths.length : 1;
 
@@ -943,7 +995,6 @@ function DashboardContent() {
                               v27 = v27 * 100;
                             }
 
-                            // ★ 片方が0の場合は両方0としてスルー（ー表示）
                             const isBothActive = v26 > 0 && v27 > 0;
                             const diffPct = isBothActive ? ((v27 - v26) / v26) * 100 : 0;
                             
@@ -1027,7 +1078,6 @@ function DashboardContent() {
                         const k26 = `${m.key}26` as keyof BpoData;
                         const k27 = `${m.key}27` as keyof BpoData;
                         
-                        // ★ 片方0除外
                         const pairedMonths = data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
                         const validCount = pairedMonths.length > 0 ? pairedMonths.length : 1;
 
