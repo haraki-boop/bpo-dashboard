@@ -9,7 +9,7 @@ interface SiteItem {
   name: string;
   desc: string;
   image: string;
-  scaleClass?: string; // 横長ロゴ用の拡大指定
+  scaleClass?: string;
   hasChikusan?: boolean;
   hasSuisan?: boolean;
   hasDelica?: boolean;
@@ -32,7 +32,7 @@ const sites: SiteItem[] = [
     name: 'AFS尾西',
     desc: 'AFS尾西 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/bisai.png',
-    scaleClass: 'scale-150', // 横長ロゴを拡大
+    scaleClass: 'scale-150',
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: true,
@@ -42,7 +42,7 @@ const sites: SiteItem[] = [
     name: '東急ストア',
     desc: '東急ストア BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/tokyu.png',
-    scaleClass: 'scale-150', // 横長ロゴを拡大
+    scaleClass: 'scale-150',
     hasChikusan: true,
     hasSuisan: false,
     hasDelica: false,
@@ -132,23 +132,23 @@ const GRADE_CONFIG: Record<string, { text: string; bg: string; dot: string }> = 
 const WATERMARK_STYLES: Record<string, { bgGlow: string; textWatermark: string }> = {
   S: {
     bgGlow: 'hover:border-purple-300',
-    textWatermark: 'text-purple-900/[0.05] group-hover:text-purple-900/[0.10]',
+    textWatermark: 'text-purple-900/[0.05] group-hover:text-purple-900/[0.09]',
   },
   A: {
     bgGlow: 'hover:border-emerald-300',
-    textWatermark: 'text-emerald-900/[0.05] group-hover:text-emerald-900/[0.10]',
+    textWatermark: 'text-emerald-900/[0.05] group-hover:text-emerald-900/[0.09]',
   },
   B: {
     bgGlow: 'hover:border-blue-300',
-    textWatermark: 'text-blue-900/[0.05] group-hover:text-blue-900/[0.10]',
+    textWatermark: 'text-blue-900/[0.05] group-hover:text-blue-900/[0.09]',
   },
   C: {
     bgGlow: 'hover:border-amber-300',
-    textWatermark: 'text-amber-900/[0.05] group-hover:text-amber-900/[0.10]',
+    textWatermark: 'text-amber-900/[0.05] group-hover:text-amber-900/[0.09]',
   },
   D: {
     bgGlow: 'hover:border-rose-300',
-    textWatermark: 'text-rose-900/[0.05] group-hover:text-rose-900/[0.10]',
+    textWatermark: 'text-rose-900/[0.05] group-hover:text-rose-900/[0.09]',
   },
 };
 
@@ -263,11 +263,11 @@ export default function PortalPage() {
                 href={`/${site.id}`}
                 className={`group relative bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-h-[175px] ${wmStyle.bgGlow}`}
               >
-                {/* 背景の透かし文字パターン */}
+                {/* ★ 2段階拡大した背景透かし文字パターン（text-[16rem]） */}
                 {currentGrade && (
                   <span
                     aria-hidden="true"
-                    className={`absolute -right-4 -bottom-10 text-[11rem] font-black select-none pointer-events-none transition-all duration-500 leading-none tracking-tighter ${wmStyle.textWatermark}`}
+                    className={`absolute -right-6 -bottom-16 text-[16rem] font-black select-none pointer-events-none transition-all duration-500 leading-none tracking-tighter ${wmStyle.textWatermark}`}
                   >
                     {currentGrade}
                   </span>
@@ -275,7 +275,6 @@ export default function PortalPage() {
 
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-4">
-                    {/* 横長ロゴもバランスよく見せるためのコンテナ */}
                     <div className="shrink-0 flex items-center justify-center h-16 w-16 overflow-visible">
                       <img
                         src={site.image}
