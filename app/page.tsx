@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowRight, LayoutDashboard, Trophy, RefreshCw } from 'lucide-react';
+import { ArrowRight, LayoutDashboard, RefreshCw } from 'lucide-react';
 
 interface SiteItem {
   id: string;
@@ -61,7 +61,7 @@ const sites: SiteItem[] = [
 ];
 
 const calculateSiteGrade = (data: any[], site: SiteItem): string => {
-  if (!Array.isArray(data) || data.length === 0) return 'ー';
+  if (!Array.isArray(data) || data.length === 0) return '';
 
   const metrics: { key: string; isReverse: boolean }[] = [
     { key: 'sales', isReverse: false },
@@ -97,10 +97,10 @@ const calculateSiteGrade = (data: any[], site: SiteItem): string => {
 
   let goodCount = 0;
 
-  metrics.forEach(m => {
+  metrics.forEach((m) => {
     const k26 = `${m.key}26`;
     const k27 = `${m.key}27`;
-    const valid = data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+    const valid = data.filter((d) => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
     if (valid.length === 0) return;
 
     const sum26 = valid.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
@@ -118,21 +118,35 @@ const calculateSiteGrade = (data: any[], site: SiteItem): string => {
   return 'D';
 };
 
-const getGradeBadgeStyle = (grade: string) => {
-  switch (grade) {
-    case 'S':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    case 'A':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    case 'B':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'C':
-      return 'bg-amber-100 text-amber-800 border-amber-200';
-    case 'D':
-      return 'bg-rose-100 text-rose-800 border-rose-200';
-    default:
-      return 'bg-slate-100 text-slate-500 border-slate-200';
-  }
+const GRADE_CONFIG: Record<string, { text: string; bg: string; dot: string }> = {
+  S: { text: 'text-purple-700', bg: 'bg-purple-50 border-purple-200/80', dot: 'bg-purple-500' },
+  A: { text: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200/80', dot: 'bg-emerald-500' },
+  B: { text: 'text-blue-700', bg: 'bg-blue-50 border-blue-200/80', dot: 'bg-blue-500' },
+  C: { text: 'text-amber-700', bg: 'bg-amber-50 border-amber-200/80', dot: 'bg-amber-500' },
+  D: { text: 'text-rose-700', bg: 'bg-rose-50 border-rose-200/80', dot: 'bg-rose-500' },
+};
+
+const WATERMARK_STYLES: Record<string, { bgGlow: string; textWatermark: string }> = {
+  S: {
+    bgGlow: 'hover:border-purple-300',
+    textWatermark: 'text-purple-900/[0.05] group-hover:text-purple-900/[0.10]',
+  },
+  A: {
+    bgGlow: 'hover:border-emerald-300',
+    textWatermark: 'text-emerald-900/[0.05] group-hover:text-emerald-900/[0.10]',
+  },
+  B: {
+    bgGlow: 'hover:border-blue-300',
+    textWatermark: 'text-blue-900/[0.05] group-hover:text-blue-900/[0.10]',
+  },
+  C: {
+    bgGlow: 'hover:border-amber-300',
+    textWatermark: 'text-amber-900/[0.05] group-hover:text-amber-900/[0.10]',
+  },
+  D: {
+    bgGlow: 'hover:border-rose-300',
+    textWatermark: 'text-rose-900/[0.05] group-hover:text-rose-900/[0.10]',
+  },
 };
 
 export default function PortalPage() {
@@ -151,10 +165,10 @@ export default function PortalPage() {
           if (Array.isArray(json.data)) {
             results[site.id] = calculateSiteGrade(json.data, site);
           } else {
-            results[site.id] = 'ー';
+            results[site.id] = '';
           }
         } catch {
-          results[site.id] = 'ー';
+          results[site.id] = '';
         }
       })
     );
@@ -168,18 +182,16 @@ export default function PortalPage() {
   }, []);
 
   const gradeCounts = useMemo(() => {
-    const counts = { S: 0, A: 0, B: 0, C: 0, D: 0 };
+    const counts: Record<string, number> = { S: 0, A: 0, B: 0, C: 0, D: 0 };
     Object.values(siteGrades).forEach((g) => {
-      if (g in counts) {
-        counts[g as keyof typeof counts]++;
-      }
+      if (g in counts) counts[g]++;
     });
     return counts;
   }, [siteGrades]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-10 font-sans">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-12 font-sans flex flex-col items-center justify-center">
+      <div className="max-w-4xl w-full">
         
         {/* ヘッダー */}
         <div className="text-center mb-10 flex flex-col items-center">
@@ -191,161 +203,93 @@ export default function PortalPage() {
             />
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold mb-3">
             <LayoutDashboard className="w-4 h-4" />
             <span>BPO OPERATIONS COMMAND CENTER</span>
           </div>
 
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
           <p className="text-slate-500 text-sm font-semibold mt-2">閲覧する拠点を選択してください</p>
-        </div>
 
-        {/* 2カラム構成：サイドバー ＋ 拠点一覧 */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          {/* 左サイドバー */}
-          <aside className="lg:col-span-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col gap-5 sticky top-8">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-slate-900 text-amber-400 rounded-xl shadow-xs">
-                  <Trophy className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-slate-900">拠点ステータス</h2>
-                  <p className="text-[10px] font-bold text-slate-400">26期対比 改善進捗</p>
-                </div>
-              </div>
+          {/* ★ シンプルな横並びステータス（S〜Dの個数表示） */}
+          <div className="mt-6 inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
+            <div className="px-3 py-1 text-[11px] font-bold text-slate-400 border-r border-slate-100 flex items-center gap-1.5">
+              <span>全{sites.length}拠点</span>
               <button
                 onClick={fetchAllGrades}
                 disabled={loading}
-                title="ステータスを再集計"
-                className="p-2 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-50 transition-all cursor-pointer"
+                title="再集計"
+                className="text-slate-400 hover:text-indigo-600 transition-colors"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-indigo-600' : ''}`} />
+                <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin text-indigo-600' : ''}`} />
               </button>
             </div>
 
-            {/* トータル状況 */}
-            <div className="p-4 bg-indigo-50/70 border border-indigo-100 rounded-2xl flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-extrabold text-indigo-700 tracking-wider uppercase">MONITORED SITES</span>
-                <div className="text-2xl font-black text-slate-900">{sites.length} <span className="text-xs font-bold text-slate-500">拠点</span></div>
-              </div>
-              <span className="text-xs font-black px-2.5 py-1 bg-white border border-indigo-200 text-indigo-700 rounded-xl shadow-2xs">
-                稼働中
-              </span>
-            </div>
-
-            {/* グレード別件数一覧 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 rounded-xl border border-purple-100 bg-purple-50/40">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center shadow-xs">S</span>
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">S</span>
-                    <span className="text-[10px] text-slate-400 font-medium">8指標以上改善</span>
-                  </div>
-                </div>
-                <strong className="text-base font-black text-purple-900">
-                  {loading ? '…' : gradeCounts.S} <span className="text-[10px] font-normal text-slate-500">拠点</span>
-                </strong>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border border-emerald-100 bg-emerald-50/40">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-xs">A</span>
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">A</span>
-                    <span className="text-[10px] text-slate-400 font-medium">6~7指標改善</span>
-                  </div>
-                </div>
-                <strong className="text-base font-black text-emerald-900">
-                  {loading ? '…' : gradeCounts.A} <span className="text-[10px] font-normal text-slate-500">拠点</span>
-                </strong>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border border-blue-100 bg-blue-50/40">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-7 h-7 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs">B</span>
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">B</span>
-                    <span className="text-[10px] text-slate-400 font-medium">4~5指標改善</span>
-                  </div>
-                </div>
-                <strong className="text-base font-black text-blue-900">
-                  {loading ? '…' : gradeCounts.B} <span className="text-[10px] font-normal text-slate-500">拠点</span>
-                </strong>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border border-amber-100 bg-amber-50/40">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-7 h-7 rounded-lg bg-amber-500 text-white font-black text-xs flex items-center justify-center shadow-xs">C</span>
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">C</span>
-                    <span className="text-[10px] text-slate-400 font-medium">2~3指標改善</span>
-                  </div>
-                </div>
-                <strong className="text-base font-black text-amber-900">
-                  {loading ? '…' : gradeCounts.C} <span className="text-[10px] font-normal text-slate-500">拠点</span>
-                </strong>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border border-rose-100 bg-rose-50/40">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-7 h-7 rounded-lg bg-rose-600 text-white font-black text-xs flex items-center justify-center shadow-xs">D</span>
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">D</span>
-                    <span className="text-[10px] text-slate-400 font-medium">1指標以下改善</span>
-                  </div>
-                </div>
-                <strong className="text-base font-black text-rose-900">
-                  {loading ? '…' : gradeCounts.D} <span className="text-[10px] font-normal text-slate-500">拠点</span>
-                </strong>
-              </div>
-            </div>
-          </aside>
-
-          {/* 右メイン：拠点カード一覧 */}
-          <main className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-5">
-            {sites.map((site) => {
-              const currentGrade = siteGrades[site.id] || 'ー';
-              const badgeStyle = getGradeBadgeStyle(currentGrade);
+            {(['S', 'A', 'B', 'C', 'D'] as const).map((grade) => {
+              const count = gradeCounts[grade] || 0;
+              const cfg = GRADE_CONFIG[grade];
+              const isActive = count > 0;
 
               return (
-                <Link
-                  key={site.id}
-                  href={`/${site.id}`}
-                  className="group bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between"
+                <div
+                  key={grade}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold transition-all ${
+                    isActive
+                      ? `${cfg.bg} ${cfg.text} border`
+                      : 'text-slate-300 bg-transparent'
+                  }`}
                 >
-                  <div>
-                    <div className="flex items-center justify-between gap-4 mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="shrink-0 flex items-center justify-center h-14 w-14">
-                          <img src={site.image} alt={site.name} className="h-full w-full object-contain" />
-                        </div>
-                        <h2 className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight">
-                          {site.name}
-                        </h2>
-                      </div>
-
-                      {/* アルファベットのみ表示 */}
-                      <span className={`w-8 h-8 rounded-xl text-sm font-black border shadow-2xs flex items-center justify-center shrink-0 ${badgeStyle}`}>
-                        {loading ? '…' : currentGrade}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-500 leading-relaxed font-medium pl-1">{site.desc}</p>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
-                    <span>ダッシュボードを開く</span>
-                    <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? cfg.dot : 'bg-slate-200'}`} />
+                  <span>{grade}</span>
+                  <span className="text-[11px] font-black">{loading ? '…' : count}</span>
+                </div>
               );
             })}
-          </main>
+          </div>
+        </div>
 
+        {/* 現場カード一覧（整った中央2列グリッド） */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {sites.map((site) => {
+            const currentGrade = siteGrades[site.id] || '';
+            const wmStyle = WATERMARK_STYLES[currentGrade] || { bgGlow: '', textWatermark: 'text-transparent' };
+
+            return (
+              <Link
+                key={site.id}
+                href={`/${site.id}`}
+                className={`group relative bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-h-[175px] ${wmStyle.bgGlow}`}
+              >
+                {/* 背景の透かし文字パターン */}
+                {currentGrade && (
+                  <span
+                    aria-hidden="true"
+                    className={`absolute -right-4 -bottom-10 text-[11rem] font-black select-none pointer-events-none transition-all duration-500 leading-none tracking-tighter ${wmStyle.textWatermark}`}
+                  >
+                    {currentGrade}
+                  </span>
+                )}
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="shrink-0 flex items-center justify-center h-16 w-16">
+                      <img src={site.image} alt={site.name} className="h-full w-full object-contain" />
+                    </div>
+                    <h2 className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight">
+                      {site.name}
+                    </h2>
+                  </div>
+
+                  <p className="text-xs text-slate-500 leading-relaxed font-medium pl-1">{site.desc}</p>
+                </div>
+
+                <div className="relative z-10 mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
+                  <span>ダッシュボードを開く</span>
+                  <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
       </div>
