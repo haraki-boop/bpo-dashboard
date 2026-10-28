@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowRight, LayoutDashboard, Trophy, ShieldCheck, AlertTriangle, RefreshCw } from 'lucide-react';
+import { ArrowRight, LayoutDashboard, Trophy, RefreshCw } from 'lucide-react';
 
 interface SiteItem {
   id: string;
@@ -203,7 +203,7 @@ export default function PortalPage() {
         {/* 2カラム構成：サイドバー ＋ 拠点一覧 */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* 左サイドバー：ランク集計 */}
+          {/* 左サイドバー */}
           <aside className="lg:col-span-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col gap-5 sticky top-8">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -211,14 +211,14 @@ export default function PortalPage() {
                   <Trophy className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-slate-900">拠点ランク状況</h2>
-                  <p className="text-[10px] font-bold text-slate-400">26期対比 総合実績</p>
+                  <h2 className="text-sm font-black text-slate-900">拠点ステータス</h2>
+                  <p className="text-[10px] font-bold text-slate-400">26期対比 改善進捗</p>
                 </div>
               </div>
               <button
                 onClick={fetchAllGrades}
                 disabled={loading}
-                title="ランクを再集計"
+                title="ステータスを再集計"
                 className="p-2 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-50 transition-all cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-indigo-600' : ''}`} />
@@ -236,13 +236,13 @@ export default function PortalPage() {
               </span>
             </div>
 
-            {/* ランク別件数一覧 */}
+            {/* グレード別件数一覧 */}
             <div className="space-y-2">
               <div className="flex items-center justify-between p-3 rounded-xl border border-purple-100 bg-purple-50/40">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center shadow-xs">S</span>
                   <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">Sランク</span>
+                    <span className="text-xs font-bold text-slate-800 block leading-tight">S</span>
                     <span className="text-[10px] text-slate-400 font-medium">8指標以上改善</span>
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default function PortalPage() {
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-xs">A</span>
                   <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">Aランク</span>
+                    <span className="text-xs font-bold text-slate-800 block leading-tight">A</span>
                     <span className="text-[10px] text-slate-400 font-medium">6~7指標改善</span>
                   </div>
                 </div>
@@ -268,7 +268,7 @@ export default function PortalPage() {
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs">B</span>
                   <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">Bランク</span>
+                    <span className="text-xs font-bold text-slate-800 block leading-tight">B</span>
                     <span className="text-[10px] text-slate-400 font-medium">4~5指標改善</span>
                   </div>
                 </div>
@@ -281,7 +281,7 @@ export default function PortalPage() {
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-amber-500 text-white font-black text-xs flex items-center justify-center shadow-xs">C</span>
                   <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">Cランク</span>
+                    <span className="text-xs font-bold text-slate-800 block leading-tight">C</span>
                     <span className="text-[10px] text-slate-400 font-medium">2~3指標改善</span>
                   </div>
                 </div>
@@ -294,7 +294,7 @@ export default function PortalPage() {
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-rose-600 text-white font-black text-xs flex items-center justify-center shadow-xs">D</span>
                   <div>
-                    <span className="text-xs font-bold text-slate-800 block leading-tight">Dランク</span>
+                    <span className="text-xs font-bold text-slate-800 block leading-tight">D</span>
                     <span className="text-[10px] text-slate-400 font-medium">1指標以下改善</span>
                   </div>
                 </div>
@@ -318,7 +318,6 @@ export default function PortalPage() {
                   className="group bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between"
                 >
                   <div>
-                    {/* ロゴは左側に配置したまま、縦中央で自然にバランスを取る */}
                     <div className="flex items-center justify-between gap-4 mb-4">
                       <div className="flex items-center gap-4">
                         <div className="shrink-0 flex items-center justify-center h-14 w-14">
@@ -329,9 +328,9 @@ export default function PortalPage() {
                         </h2>
                       </div>
 
-                      {/* ランクバッジ */}
-                      <span className={`px-2.5 py-1 rounded-xl text-xs font-black border shadow-2xs ${badgeStyle}`}>
-                        {loading ? '…' : `${currentGrade}ランク`}
+                      {/* アルファベットのみ表示 */}
+                      <span className={`w-8 h-8 rounded-xl text-sm font-black border shadow-2xs flex items-center justify-center shrink-0 ${badgeStyle}`}>
+                        {loading ? '…' : currentGrade}
                       </span>
                     </div>
 
