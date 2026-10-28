@@ -9,6 +9,7 @@ interface SiteItem {
   name: string;
   desc: string;
   image: string;
+  scaleClass?: string; // 横長ロゴ用の拡大指定
   hasChikusan?: boolean;
   hasSuisan?: boolean;
   hasDelica?: boolean;
@@ -31,6 +32,7 @@ const sites: SiteItem[] = [
     name: 'AFS尾西',
     desc: 'AFS尾西 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/bisai.png',
+    scaleClass: 'scale-150', // 横長ロゴを拡大
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: true,
@@ -40,6 +42,7 @@ const sites: SiteItem[] = [
     name: '東急ストア',
     desc: '東急ストア BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/tokyu.png',
+    scaleClass: 'scale-150', // 横長ロゴを拡大
     hasChikusan: true,
     hasSuisan: false,
     hasDelica: false,
@@ -211,7 +214,7 @@ export default function PortalPage() {
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
           <p className="text-slate-500 text-sm font-semibold mt-2">閲覧する拠点を選択してください</p>
 
-          {/* ★ シンプルな横並びステータス（S〜Dの個数表示） */}
+          {/* シンプルな横並びステータス（S〜Dの個数表示） */}
           <div className="mt-6 inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
             <div className="px-3 py-1 text-[11px] font-bold text-slate-400 border-r border-slate-100 flex items-center gap-1.5">
               <span>全{sites.length}拠点</span>
@@ -248,7 +251,7 @@ export default function PortalPage() {
           </div>
         </div>
 
-        {/* 現場カード一覧（整った中央2列グリッド） */}
+        {/* 現場カード一覧 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {sites.map((site) => {
             const currentGrade = siteGrades[site.id] || '';
@@ -272,8 +275,13 @@ export default function PortalPage() {
 
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="shrink-0 flex items-center justify-center h-16 w-16">
-                      <img src={site.image} alt={site.name} className="h-full w-full object-contain" />
+                    {/* 横長ロゴもバランスよく見せるためのコンテナ */}
+                    <div className="shrink-0 flex items-center justify-center h-16 w-16 overflow-visible">
+                      <img
+                        src={site.image}
+                        alt={site.name}
+                        className={`h-full w-full object-contain ${site.scaleClass || ''}`}
+                      />
                     </div>
                     <h2 className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight">
                       {site.name}
