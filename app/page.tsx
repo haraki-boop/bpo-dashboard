@@ -65,8 +65,8 @@ export default function PortalPage() {
               className="group bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between"
             >
               <div>
-                {/* 拠点ロゴ（枠・背景なしで直接配置） ＋ 拠点タイトル */}
-                <div className="flex items-center gap-4 mb-4">
+                {/* 拠点ロゴ ＋ 拠点タイトル（中央揃えに変更） */}
+                <div className="flex items-center justify-center gap-4 mb-4">
                   <div className="shrink-0 flex items-center justify-center h-16 w-16">
                     <img src={site.image} alt={site.name} className="h-full w-full object-contain" />
                   </div>
@@ -77,7 +77,7 @@ export default function PortalPage() {
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-500 leading-relaxed font-medium pl-1">{site.desc}</p>
+                <p className="text-xs text-slate-500 leading-relaxed font-medium text-center">{site.desc}</p>
               </div>
 
               <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
