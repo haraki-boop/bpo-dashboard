@@ -47,11 +47,41 @@ const sites: SiteItem[] = [
   },
 ];
 
-// ★ 詳細画面 (app/[site]/page.tsx) と完全一致させたランク判定ロジック
-const calculateSiteGrade = (data: any[]): string => {
-  if (!Array.isArray(data) || data.length === 0) return '';
+// ★ app/[site]/page.tsx と100%同一のデータ正規化＆ランク判定ロジック
+const calculateSiteGrade = (rawData: any[]): string => {
+  if (!Array.isArray(rawData) || rawData.length === 0) return '';
 
-  const metrics = [
+  // 1. 金額文字列（¥やカンマ）の数値クリーニング（詳細画面と完全一致）
+  const data = rawData.map((d: any) => ({
+    ...d,
+    sales26: Number(String(d.sales26 || 0).replace(/[^0-9.-]+/g, '')),
+    sales27: Number(String(d.sales27 || 0).replace(/[^0-9.-]+/g, '')),
+    volume26: Number(String(d.volume26 || 0).replace(/[^0-9.-]+/g, '')),
+    volume27: Number(String(d.volume27 || 0).replace(/[^0-9.-]+/g, '')),
+  }));
+
+  const getPairedMonths = (key: string) => {
+    const k26 = `${key}26`;
+    const k27 = `${key}27`;
+    return data.filter((d) => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+  };
+
+  const calcPairedSum = (key: string, term: '26' | '27') => {
+    const validMonths = getPairedMonths(key);
+    const k = `${key}${term}`;
+    return validMonths.reduce((s, d) => s + (Number(d[k]) || 0), 0);
+  };
+
+  const calcPairedAvg = (key: string, term: '26' | '27') => {
+    const validMonths = getPairedMonths(key);
+    if (validMonths.length === 0) return 0;
+    return calcPairedSum(key, term) / validMonths.length;
+  };
+
+  const totalSales26 = calcPairedSum('sales', '26');
+  const totalSales27 = calcPairedSum('sales', '27');
+
+  const gradeMetrics = [
     { key: 'sales', isReverse: false },
     { key: 'prodSales', isReverse: false },
     { key: 'prodAll', isReverse: false },
@@ -64,32 +94,22 @@ const calculateSiteGrade = (data: any[]): string => {
 
   let goodCount = 0;
 
-  metrics.forEach((m) => {
-    const k26 = `${m.key}26`;
-    const k27 = `${m.key}27`;
-
-    // 26期・27期ともに値が存在する月のみ抽出
-    const paired = data.filter((d) => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
-    if (paired.length === 0) return;
-
-    let sum26 = paired.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
-    let sum27 = paired.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
-
-    let v26 = m.key === 'sales' ? sum26 : sum26 / paired.length;
-    let v27 = m.key === 'sales' ? sum27 : sum27 / paired.length;
+  gradeMetrics.forEach((item) => {
+    let v26 = item.key === 'sales' ? totalSales26 : calcPairedAvg(item.key, '26');
+    let v27 = item.key === 'sales' ? totalSales27 : calcPairedAvg(item.key, '27');
 
     if (
-      m.key === 'grossProfit' ||
-      m.key === 'operatingProfit' ||
-      m.key === 'budgetGrossProfit' ||
-      m.key === 'budgetOperatingProfit'
+      item.key === 'grossProfit' ||
+      item.key === 'operatingProfit' ||
+      item.key === 'budgetGrossProfit' ||
+      item.key === 'budgetOperatingProfit'
     ) {
       v26 = v26 * 100;
       v27 = v27 * 100;
     }
 
     const diff = v27 - v26;
-    const isGood = m.isReverse ? diff <= 0 : diff >= 0;
+    const isGood = item.isReverse ? diff <= 0 : diff >= 0;
     if (isGood) goodCount++;
   });
 
