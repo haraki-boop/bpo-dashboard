@@ -45,6 +45,13 @@ const sites: SiteItem[] = [
     desc: '尾家産業 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/oie.png',
   },
+  {
+    id: 'minamikanto',
+    name: 'AFS南関東',
+    desc: 'AFS南関東 BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/bisai.png',
+    scaleClass: 'scale-150',
+  },
 ];
 
 // ★ app/[site]/page.tsx と100%同一のデータ正規化＆ランク判定ロジック

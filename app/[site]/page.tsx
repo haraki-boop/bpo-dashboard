@@ -106,6 +106,14 @@ const SITE_CONFIGS: Record<string, {
     hasShowaDepts: false,
     hasOieDepts: true,
   },
+  minamikanto: {
+    name: 'AFS南関東',
+    hasChikusan: true,
+    hasSuisan: true,
+    hasDelica: false,
+    hasShowaDepts: false,
+    hasOieDepts: false,
+  },
 };
 
 const formatValue = (key: string, value: number) => {
@@ -257,48 +265,48 @@ function DashboardContent() {
     });
   }, [data, hideEmptyMonths]);
 
-  // 全KPI指標リスト
+  // 全KPI指標リスト（指定ナンバリング固定適用）
   const metricsList = useMemo(() => {
-    let idCounter = 1;
     const list = [
-      { id: idCounter++, key: 'sales', name: `${idCounter - 1}. 売上`, unit: '', isReverse: false, desc: '月次売上金額の推移', isForGrade: true },
-      { id: idCounter++, key: 'prodSales', name: `${idCounter - 1}. 売上生産性`, unit: '', isReverse: false, desc: '労務費工数に対する売上創出効率', isForGrade: true },
-      { id: idCounter++, key: 'prodAll', name: `${idCounter - 1}. 作業生産性(全体)`, unit: '', isReverse: false, desc: '全社作業の処理効率', isForGrade: true },
+      { id: 1, key: 'sales', name: '1. 売上', unit: '', isReverse: false, desc: '月次売上金額の推移', isForGrade: true },
+      { id: 2, key: 'prodSales', name: '2. 売上生産性', unit: '', isReverse: false, desc: '労務費工数に対する売上創出効率', isForGrade: true },
+      { id: 3, key: 'prodAll', name: '3. 作業生産性(全体)', unit: '', isReverse: false, desc: '全社作業の処理効率', isForGrade: true },
     ];
 
+    let subId = 100;
     if (siteConfig.hasChikusan) {
-      list.push({ id: idCounter++, key: 'prodChikusan', name: `${idCounter - 1}. 作業生産性(畜産)`, unit: '', isReverse: false, desc: '畜産加工ラインの作業効率', isForGrade: false });
+      list.push({ id: subId++, key: 'prodChikusan', name: '作業生産性(畜産)', unit: '', isReverse: false, desc: '畜産加工ラインの作業効率', isForGrade: false });
     }
     if (siteConfig.hasSuisan) {
-      list.push({ id: idCounter++, key: 'prodSuisan', name: `${idCounter - 1}. 作業生産性(水産)`, unit: '', isReverse: false, desc: '水産加工部門の作業効率', isForGrade: false });
+      list.push({ id: subId++, key: 'prodSuisan', name: '作業生産性(水産)', unit: '', isReverse: false, desc: '水産加工部門の作業効率', isForGrade: false });
     }
     if (siteConfig.hasDelica) {
-      list.push({ id: idCounter++, key: 'prodDelica', name: `${idCounter - 1}. 作業生産性(デリカ)`, unit: '', isReverse: false, desc: 'デリカ加工部門の作業効率', isForGrade: false });
+      list.push({ id: subId++, key: 'prodDelica', name: '作業生産性(デリカ)', unit: '', isReverse: false, desc: 'デリカ加工部門の作業効率', isForGrade: false });
     }
 
     if (siteConfig.hasShowaDepts) {
       list.push(
-        { id: idCounter++, key: 'prodRicos', name: `${idCounter - 1}. 作業生産性(リコス)`, unit: '', isReverse: false, desc: 'リコス部門の作業効率', isForGrade: false },
-        { id: idCounter++, key: 'prodIkkatsu', name: `${idCounter - 1}. 作業生産性(一括)`, unit: '', isReverse: false, desc: '一括部門の作業効率', isForGrade: false },
-        { id: idCounter++, key: 'prodBronco', name: `${idCounter - 1}. 作業生産性(ブロンコビリー)`, unit: '', isReverse: false, desc: 'ブロンコビリー部門の作業効率', isForGrade: false },
-        { id: idCounter++, key: 'prodHanyou', name: `${idCounter - 1}. 作業生産性(汎用)`, unit: '', isReverse: false, desc: '汎用部門の作業効率', isForGrade: false }
+        { id: subId++, key: 'prodRicos', name: '作業生産性(リコス)', unit: '', isReverse: false, desc: 'リコス部門の作業効率', isForGrade: false },
+        { id: subId++, key: 'prodIkkatsu', name: '作業生産性(一括)', unit: '', isReverse: false, desc: '一括部門の作業効率', isForGrade: false },
+        { id: subId++, key: 'prodBronco', name: '作業生産性(ブロンコビリー)', unit: '', isReverse: false, desc: 'ブロンコビリー部門の作業効率', isForGrade: false },
+        { id: subId++, key: 'prodHanyou', name: '作業生産性(汎用)', unit: '', isReverse: false, desc: '汎用部門の作業効率', isForGrade: false }
       );
     }
 
     if (siteConfig.hasOieDepts) {
       list.push(
-        { id: idCounter++, key: 'prodHannan', name: `${idCounter - 1}. 作業生産性(阪南)`, unit: '', isReverse: false, desc: '阪南部門の作業効率', isForGrade: false },
-        { id: idCounter++, key: 'prodNsc', name: `${idCounter - 1}. 作業生産性(NSC)`, unit: '', isReverse: false, desc: 'NSC部門の作業効率', isForGrade: false }
+        { id: subId++, key: 'prodHannan', name: '作業生産性(阪南)', unit: '', isReverse: false, desc: '阪南部門の作業効率', isForGrade: false },
+        { id: subId++, key: 'prodNsc', name: '作業生産性(NSC)', unit: '', isReverse: false, desc: 'NSC部門の作業効率', isForGrade: false }
       );
     }
 
     list.push(
-      { id: idCounter++, key: 'error', name: `${idCounter - 1}. 事故評価(エラー率)`, unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)', isForGrade: true },
-      { id: idCounter++, key: 'dx', name: `${idCounter - 1}. DX評価`, unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標', isForGrade: false },
-      { id: idCounter++, key: 'grossProfit', name: `${idCounter - 1}. 売上総利益率`, unit: '%', isReverse: false, desc: '粗利益率のポイント推移', isForGrade: true },
-      { id: idCounter++, key: 'operatingProfit', name: `${idCounter - 1}. 営業利益率`, unit: '%', isReverse: false, desc: '営業利益率のポイント推移', isForGrade: true },
-      { id: idCounter++, key: 'budgetGrossProfit', name: `${idCounter - 1}. 予算総利益評価`, unit: '%', isReverse: false, desc: '売上総利益実績 ÷ 予算売上総利益', isForGrade: true },
-      { id: idCounter++, key: 'budgetOperatingProfit', name: `${idCounter - 1}. 予算営業利益評価`, unit: '%', isReverse: false, desc: '営業利益実績 ÷ 予算営業利益', isForGrade: true }
+      { id: 5, key: 'error', name: '5. 事故評価(エラー率)', unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)', isForGrade: true },
+      { id: 6, key: 'dx', name: 'DX評価', unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標', isForGrade: false },
+      { id: 7, key: 'grossProfit', name: '7. 売上総利益率', unit: '%', isReverse: false, desc: '粗利益率のポイント推移', isForGrade: true },
+      { id: 8, key: 'operatingProfit', name: '8. 営業利益率', unit: '%', isReverse: false, desc: '営業利益率のポイント推移', isForGrade: true },
+      { id: 9, key: 'budgetGrossProfit', name: '9. 予算総利益評価', unit: '%', isReverse: false, desc: '売上総利益実績 ÷ 予算売上総利益', isForGrade: true },
+      { id: 10, key: 'budgetOperatingProfit', name: '10. 予算営業利益評価', unit: '%', isReverse: false, desc: '営業利益実績 ÷ 予算営業利益', isForGrade: true }
     );
 
     return list;
@@ -671,7 +679,7 @@ function DashboardContent() {
                 </div>
               </div>
 
-              {/* ★ 新基準のラベル表記 */}
+              {/* 判定基準ラベル表記 */}
               <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-bold z-10">
                 <span className="flex items-center gap-1 text-slate-400">
                   <Target className="w-3 h-3" />
