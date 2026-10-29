@@ -47,14 +47,14 @@ const sites: SiteItem[] = [
   },
 ];
 
-// ★ ランク判定対象：生産性は「作業生産性(全体)」のみを使用（共通6指標）
+// ★ 新ランク基準：S:8, A:7, B:5~6, C:3~4, D:1~2（0含む）
 const calculateSiteGrade = (data: any[]): string => {
   if (!Array.isArray(data) || data.length === 0) return '';
 
   const metrics: { key: string; isReverse: boolean }[] = [
     { key: 'sales', isReverse: false },
     { key: 'prodSales', isReverse: false },
-    { key: 'prodAll', isReverse: false }, // ★ 全体のみ
+    { key: 'prodAll', isReverse: false },
     { key: 'error', isReverse: true },
     { key: 'grossProfit', isReverse: false },
     { key: 'operatingProfit', isReverse: false },
@@ -82,11 +82,10 @@ const calculateSiteGrade = (data: any[]): string => {
 
   if (activeMetricCount === 0) return '';
 
-  // 基準（全8指標中）：S: 7~8, A: 5~6, B: 3~4, C: 2, D: ~1
-  if (goodCount >= 7) return 'S';
-  if (goodCount >= 5) return 'A';
-  if (goodCount >= 3) return 'B';
-  if (goodCount >= 2) return 'C';
+  if (goodCount >= 8) return 'S';
+  if (goodCount >= 7) return 'A';
+  if (goodCount >= 5) return 'B';
+  if (goodCount >= 3) return 'C';
   return 'D';
 };
 
@@ -183,7 +182,7 @@ export default function PortalPage() {
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
           <p className="text-slate-500 text-sm font-semibold mt-2">閲覧する拠点を選択してください</p>
 
-          {/* シンプルな横並びステータス（S〜Dの個数表示） */}
+          {/* シンプルな横並びステータス */}
           <div className="mt-6 inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
             <div className="px-3 py-1 text-[11px] font-bold text-slate-400 border-r border-slate-100 flex items-center gap-1.5">
               <span>全{sites.length}拠点</span>
@@ -207,7 +206,7 @@ export default function PortalPage() {
                   key={grade}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold transition-all ${
                     isActive
-                      ? `${cfg.bg}${cfg.text} border`
+                      ? `${cfg.bg} ${cfg.text} border`
                       : 'text-slate-300 bg-transparent'
                   }`}
                 >

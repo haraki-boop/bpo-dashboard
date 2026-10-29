@@ -257,13 +257,13 @@ function DashboardContent() {
     });
   }, [data, hideEmptyMonths]);
 
-  // 全KPI指標リスト（営業利益率の下に「予算総利益評価」「予算営業利益評価」を追加）
+  // 全KPI指標リスト
   const metricsList = useMemo(() => {
     let idCounter = 1;
     const list = [
       { id: idCounter++, key: 'sales', name: `${idCounter - 1}. 売上`, unit: '', isReverse: false, desc: '月次売上金額の推移', isForGrade: true },
       { id: idCounter++, key: 'prodSales', name: `${idCounter - 1}. 売上生産性`, unit: '', isReverse: false, desc: '労務費工数に対する売上創出効率', isForGrade: true },
-      { id: idCounter++, key: 'prodAll', name: `${idCounter - 1}. 作業生産性(全体)`, unit: '', isReverse: false, desc: '全社作業の処理効率', isForGrade: true }, // ★ ランク判定対象
+      { id: idCounter++, key: 'prodAll', name: `${idCounter - 1}. 作業生産性(全体)`, unit: '', isReverse: false, desc: '全社作業の処理効率', isForGrade: true },
     ];
 
     if (siteConfig.hasChikusan) {
@@ -297,7 +297,6 @@ function DashboardContent() {
       { id: idCounter++, key: 'dx', name: `${idCounter - 1}. DX評価`, unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標', isForGrade: false },
       { id: idCounter++, key: 'grossProfit', name: `${idCounter - 1}. 売上総利益率`, unit: '%', isReverse: false, desc: '粗利益率のポイント推移', isForGrade: true },
       { id: idCounter++, key: 'operatingProfit', name: `${idCounter - 1}. 営業利益率`, unit: '%', isReverse: false, desc: '営業利益率のポイント推移', isForGrade: true },
-      // ★ 営業利益率の下に追加
       { id: idCounter++, key: 'budgetGrossProfit', name: `${idCounter - 1}. 予算総利益評価`, unit: '%', isReverse: false, desc: '売上総利益実績 ÷ 予算売上総利益', isForGrade: true },
       { id: idCounter++, key: 'budgetOperatingProfit', name: `${idCounter - 1}. 予算営業利益評価`, unit: '%', isReverse: false, desc: '営業利益実績 ÷ 予算営業利益', isForGrade: true }
     );
@@ -461,7 +460,7 @@ function DashboardContent() {
     return list;
   }, [data, siteConfig]);
 
-  // ★ 総合実績ランク判定：作業生産性は全体のみを対象とする（isForGrade === true）
+  // ★ 新ランク基準：S:8, A:7, B:5~6, C:3~4, D:1~2（作業生産性は全体のみ対象）
   const gradeInfo = useMemo(() => {
     const validMetrics = metricAnalysis.filter(m => m.isForGrade);
     const goodCount = validMetrics.filter(m => m.isGood).length;
@@ -472,22 +471,22 @@ function DashboardContent() {
     let borderStyle = 'border-purple-200 bg-gradient-to-br from-purple-50/50 via-white to-indigo-50/30';
     let label = '最高水準の拠点運営';
 
-    if (goodCount >= 7) {
+    if (goodCount >= 8) {
       grade = 'S';
       badgeClass = 'from-purple-600 via-indigo-600 to-blue-600 text-white shadow-purple-100';
       borderStyle = 'border-purple-200 bg-gradient-to-br from-purple-50/60 via-white to-indigo-50/30';
       label = '最高水準の拠点運営';
-    } else if (goodCount >= 5) {
+    } else if (goodCount >= 7) {
       grade = 'A';
       badgeClass = 'from-emerald-600 to-teal-600 text-white shadow-emerald-100';
       borderStyle = 'border-emerald-200 bg-gradient-to-br from-emerald-50/60 via-white to-teal-50/30';
       label = '極めて優秀な拠点運営';
-    } else if (goodCount >= 3) {
+    } else if (goodCount >= 5) {
       grade = 'B';
       badgeClass = 'from-blue-600 to-cyan-600 text-white shadow-blue-100';
       borderStyle = 'border-blue-200 bg-gradient-to-br from-blue-50/60 via-white to-cyan-50/30';
       label = '良好・順調な運営';
-    } else if (goodCount >= 2) {
+    } else if (goodCount >= 3) {
       grade = 'C';
       badgeClass = 'from-amber-500 to-orange-600 text-white shadow-amber-100';
       borderStyle = 'border-amber-200 bg-gradient-to-br from-amber-50/60 via-white to-orange-50/30';
@@ -672,17 +671,18 @@ function DashboardContent() {
                 </div>
               </div>
 
+              {/* ★ 新基準のラベル表記 */}
               <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-bold z-10">
                 <span className="flex items-center gap-1 text-slate-400">
                   <Target className="w-3 h-3" />
                   <span>判定基準（作業生産性は全体のみ対象）:</span>
                 </span>
                 <div className="flex gap-1.5">
-                  <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">S: 7~8</span>
-                  <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">A: 5~6</span>
-                  <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">B: 3~4</span>
-                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">C: 2</span>
-                  <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">D: ~1</span>
+                  <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">S: 8</span>
+                  <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">A: 7</span>
+                  <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">B: 5~6</span>
+                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">C: 3~4</span>
+                  <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">D: 1~2</span>
                 </div>
               </div>
             </div>
