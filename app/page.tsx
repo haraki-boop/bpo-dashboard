@@ -47,11 +47,11 @@ const sites: SiteItem[] = [
   },
 ];
 
-// ★ 新ランク基準：S:8, A:7, B:5~6, C:3~4, D:1~2（0含む）
+// ★ 詳細画面 (app/[site]/page.tsx) と完全一致させたランク判定ロジック
 const calculateSiteGrade = (data: any[]): string => {
   if (!Array.isArray(data) || data.length === 0) return '';
 
-  const metrics: { key: string; isReverse: boolean }[] = [
+  const metrics = [
     { key: 'sales', isReverse: false },
     { key: 'prodSales', isReverse: false },
     { key: 'prodAll', isReverse: false },
@@ -63,32 +63,42 @@ const calculateSiteGrade = (data: any[]): string => {
   ];
 
   let goodCount = 0;
-  let activeMetricCount = 0;
 
   metrics.forEach((m) => {
     const k26 = `${m.key}26`;
     const k27 = `${m.key}27`;
-    const valid = data.filter((d) => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
-    if (valid.length === 0) return;
 
-    activeMetricCount++;
-    const sum26 = valid.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
-    const sum27 = valid.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
-    const diff = sum27 - sum26;
+    // 26期・27期ともに値が存在する月のみ抽出
+    const paired = data.filter((d) => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+    if (paired.length === 0) return;
 
+    let sum26 = paired.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
+    let sum27 = paired.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
+
+    let v26 = m.key === 'sales' ? sum26 : sum26 / paired.length;
+    let v27 = m.key === 'sales' ? sum27 : sum27 / paired.length;
+
+    if (
+      m.key === 'grossProfit' ||
+      m.key === 'operatingProfit' ||
+      m.key === 'budgetGrossProfit' ||
+      m.key === 'budgetOperatingProfit'
+    ) {
+      v26 = v26 * 100;
+      v27 = v27 * 100;
+    }
+
+    const diff = v27 - v26;
     const isGood = m.isReverse ? diff <= 0 : diff >= 0;
     if (isGood) goodCount++;
   });
 
-  if (activeMetricCount === 0) return '';
-
-  // ★ 新ランク基準：S:8, A:7, B:5~6, C:3~4, D:1~2（0個は除外/判定なし）
+  // 判定基準: S:8, A:7, B:5~6, C:3~4, D:1~2
   if (goodCount >= 8) return 'S';
   if (goodCount >= 7) return 'A';
   if (goodCount >= 5) return 'B';
   if (goodCount >= 3) return 'C';
-  if (goodCount >= 1) return 'D';
-  return ''; // 0個の場合はランク付けなし（Dにも含めない場合）
+  return 'D';
 };
 
 const GRADE_CONFIG: Record<string, { text: string; bg: string; dot: string }> = {
