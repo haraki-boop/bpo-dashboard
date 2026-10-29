@@ -82,11 +82,13 @@ const calculateSiteGrade = (data: any[]): string => {
 
   if (activeMetricCount === 0) return '';
 
+  // ★ 新ランク基準：S:8, A:7, B:5~6, C:3~4, D:1~2（0個は除外/判定なし）
   if (goodCount >= 8) return 'S';
   if (goodCount >= 7) return 'A';
   if (goodCount >= 5) return 'B';
   if (goodCount >= 3) return 'C';
-  return 'D';
+  if (goodCount >= 1) return 'D';
+  return ''; // 0個の場合はランク付けなし（Dにも含めない場合）
 };
 
 const GRADE_CONFIG: Record<string, { text: string; bg: string; dot: string }> = {
