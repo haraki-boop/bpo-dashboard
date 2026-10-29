@@ -31,7 +31,6 @@ interface BpoData {
   volume26: number; volume27: number;
   prodSales26: number; prodSales27: number;
   prodAll26: number; prodAll27: number;
-  // 一般拠点部門
   prodChikusan26: number; prodChikusan27: number;
   prodSuisan26: number; prodSuisan27: number;
   prodDelica26?: number; prodDelica27?: number;
@@ -39,7 +38,6 @@ interface BpoData {
   packChikusan26: number; packChikusan27: number;
   packSuisan26: number; packSuisan27: number;
   packDelica26?: number; packDelica27?: number;
-  // 昭和冷蔵専用部門
   prodRicos26?: number; prodRicos27?: number;
   prodIkkatsu26?: number; prodIkkatsu27?: number;
   prodBronco26?: number; prodBronco27?: number;
@@ -48,7 +46,6 @@ interface BpoData {
   packIkkatsu26?: number; packIkkatsu27?: number;
   packBronco26?: number; packBronco27?: number;
   packHanyou26?: number; packHanyou27?: number;
-  // 尾家産業専用部門（阪南、NSC）
   prodHannan26?: number; prodHannan27?: number;
   prodNsc26?: number; prodNsc27?: number;
   packHannan26?: number; packHannan27?: number;
@@ -57,6 +54,8 @@ interface BpoData {
   dx26: number; dx27: number;
   grossProfit26: number; grossProfit27: number;
   operatingProfit26: number; operatingProfit27: number;
+  budgetGrossProfit26?: number; budgetGrossProfit27?: number;
+  budgetOperatingProfit26?: number; budgetOperatingProfit27?: number;
 }
 
 const SITE_CONFIGS: Record<string, {
@@ -149,6 +148,8 @@ const formatValue = (key: string, value: number) => {
       return Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     case 'grossProfit':
     case 'operatingProfit':
+    case 'budgetGrossProfit':
+    case 'budgetOperatingProfit':
       return Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     default:
       return Number(value).toLocaleString('ja-JP', { maximumFractionDigits: 2 });
@@ -256,45 +257,49 @@ function DashboardContent() {
     });
   }, [data, hideEmptyMonths]);
 
+  // 全KPI指標リスト（営業利益率の下に「予算総利益評価」「予算営業利益評価」を追加）
   const metricsList = useMemo(() => {
     let idCounter = 1;
     const list = [
-      { id: idCounter++, key: 'sales', name: `${idCounter - 1}. 売上`, unit: '', isReverse: false, desc: '月次売上金額の推移' },
-      { id: idCounter++, key: 'prodSales', name: `${idCounter - 1}. 売上生産性`, unit: '', isReverse: false, desc: '労務費工数に対する売上創出効率' },
-      { id: idCounter++, key: 'prodAll', name: `${idCounter - 1}. 作業生産性(全体)`, unit: '', isReverse: false, desc: '全社作業の処理効率' },
+      { id: idCounter++, key: 'sales', name: `${idCounter - 1}. 売上`, unit: '', isReverse: false, desc: '月次売上金額の推移', isForGrade: true },
+      { id: idCounter++, key: 'prodSales', name: `${idCounter - 1}. 売上生産性`, unit: '', isReverse: false, desc: '労務費工数に対する売上創出効率', isForGrade: true },
+      { id: idCounter++, key: 'prodAll', name: `${idCounter - 1}. 作業生産性(全体)`, unit: '', isReverse: false, desc: '全社作業の処理効率', isForGrade: true }, // ★ ランク判定対象
     ];
 
     if (siteConfig.hasChikusan) {
-      list.push({ id: idCounter++, key: 'prodChikusan', name: `${idCounter - 1}. 作業生産性(畜産)`, unit: '', isReverse: false, desc: '畜産加工ラインの作業効率' });
+      list.push({ id: idCounter++, key: 'prodChikusan', name: `${idCounter - 1}. 作業生産性(畜産)`, unit: '', isReverse: false, desc: '畜産加工ラインの作業効率', isForGrade: false });
     }
     if (siteConfig.hasSuisan) {
-      list.push({ id: idCounter++, key: 'prodSuisan', name: `${idCounter - 1}. 作業生産性(水産)`, unit: '', isReverse: false, desc: '水産加工部門の作業効率' });
+      list.push({ id: idCounter++, key: 'prodSuisan', name: `${idCounter - 1}. 作業生産性(水産)`, unit: '', isReverse: false, desc: '水産加工部門の作業効率', isForGrade: false });
     }
     if (siteConfig.hasDelica) {
-      list.push({ id: idCounter++, key: 'prodDelica', name: `${idCounter - 1}. 作業生産性(デリカ)`, unit: '', isReverse: false, desc: 'デリカ加工部門の作業効率' });
+      list.push({ id: idCounter++, key: 'prodDelica', name: `${idCounter - 1}. 作業生産性(デリカ)`, unit: '', isReverse: false, desc: 'デリカ加工部門の作業効率', isForGrade: false });
     }
 
     if (siteConfig.hasShowaDepts) {
       list.push(
-        { id: idCounter++, key: 'prodRicos', name: `${idCounter - 1}. 作業生産性(リコス)`, unit: '', isReverse: false, desc: 'リコス部門の作業効率' },
-        { id: idCounter++, key: 'prodIkkatsu', name: `${idCounter - 1}. 作業生産性(一括)`, unit: '', isReverse: false, desc: '一括部門の作業効率' },
-        { id: idCounter++, key: 'prodBronco', name: `${idCounter - 1}. 作業生産性(ブロンコビリー)`, unit: '', isReverse: false, desc: 'ブロンコビリー部門の作業効率' },
-        { id: idCounter++, key: 'prodHanyou', name: `${idCounter - 1}. 作業生産性(汎用)`, unit: '', isReverse: false, desc: '汎用部門の作業効率' }
+        { id: idCounter++, key: 'prodRicos', name: `${idCounter - 1}. 作業生産性(リコス)`, unit: '', isReverse: false, desc: 'リコス部門の作業効率', isForGrade: false },
+        { id: idCounter++, key: 'prodIkkatsu', name: `${idCounter - 1}. 作業生産性(一括)`, unit: '', isReverse: false, desc: '一括部門の作業効率', isForGrade: false },
+        { id: idCounter++, key: 'prodBronco', name: `${idCounter - 1}. 作業生産性(ブロンコビリー)`, unit: '', isReverse: false, desc: 'ブロンコビリー部門の作業効率', isForGrade: false },
+        { id: idCounter++, key: 'prodHanyou', name: `${idCounter - 1}. 作業生産性(汎用)`, unit: '', isReverse: false, desc: '汎用部門の作業効率', isForGrade: false }
       );
     }
 
     if (siteConfig.hasOieDepts) {
       list.push(
-        { id: idCounter++, key: 'prodHannan', name: `${idCounter - 1}. 作業生産性(阪南)`, unit: '', isReverse: false, desc: '阪南部門の作業効率' },
-        { id: idCounter++, key: 'prodNsc', name: `${idCounter - 1}. 作業生産性(NSC)`, unit: '', isReverse: false, desc: 'NSC部門の作業効率' }
+        { id: idCounter++, key: 'prodHannan', name: `${idCounter - 1}. 作業生産性(阪南)`, unit: '', isReverse: false, desc: '阪南部門の作業効率', isForGrade: false },
+        { id: idCounter++, key: 'prodNsc', name: `${idCounter - 1}. 作業生産性(NSC)`, unit: '', isReverse: false, desc: 'NSC部門の作業効率', isForGrade: false }
       );
     }
 
     list.push(
-      { id: idCounter++, key: 'error', name: `${idCounter - 1}. 事故評価(エラー率)`, unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)' },
-      { id: idCounter++, key: 'dx', name: `${idCounter - 1}. DX評価`, unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標' },
-      { id: idCounter++, key: 'grossProfit', name: `${idCounter - 1}. 売上総利益率`, unit: '%', isReverse: false, desc: '粗利益率のポイント推移' },
-      { id: idCounter++, key: 'operatingProfit', name: `${idCounter - 1}. 営業利益率`, unit: '%', isReverse: false, desc: '営業利益率のポイント推移' }
+      { id: idCounter++, key: 'error', name: `${idCounter - 1}. 事故評価(エラー率)`, unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)', isForGrade: true },
+      { id: idCounter++, key: 'dx', name: `${idCounter - 1}. DX評価`, unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標', isForGrade: false },
+      { id: idCounter++, key: 'grossProfit', name: `${idCounter - 1}. 売上総利益率`, unit: '%', isReverse: false, desc: '粗利益率のポイント推移', isForGrade: true },
+      { id: idCounter++, key: 'operatingProfit', name: `${idCounter - 1}. 営業利益率`, unit: '%', isReverse: false, desc: '営業利益率のポイント推移', isForGrade: true },
+      // ★ 営業利益率の下に追加
+      { id: idCounter++, key: 'budgetGrossProfit', name: `${idCounter - 1}. 予算総利益評価`, unit: '%', isReverse: false, desc: '売上総利益実績 ÷ 予算売上総利益', isForGrade: true },
+      { id: idCounter++, key: 'budgetOperatingProfit', name: `${idCounter - 1}. 予算営業利益評価`, unit: '%', isReverse: false, desc: '営業利益実績 ÷ 予算営業利益', isForGrade: true }
     );
 
     return list;
@@ -305,7 +310,12 @@ function DashboardContent() {
       let v26 = item.key === 'sales' ? totalSales26 : calcPairedAvg(item.key, '26');
       let v27 = item.key === 'sales' ? totalSales27 : calcPairedAvg(item.key, '27');
 
-      if (item.key === 'grossProfit' || item.key === 'operatingProfit') {
+      if (
+        item.key === 'grossProfit' ||
+        item.key === 'operatingProfit' ||
+        item.key === 'budgetGrossProfit' ||
+        item.key === 'budgetOperatingProfit'
+      ) {
         v26 = v26 * 100;
         v27 = v27 * 100;
       }
@@ -342,6 +352,12 @@ function DashboardContent() {
         if (pctNum >= 10) reasonText = '26期より大幅向上。固定費の効率化と高収益な拠点運営体制が確立。';
         else if (pctNum >= 0) reasonText = '26期より向上。収益性の向上が着実に進んでいる状態。';
         else reasonText = '26期より低下。固定費・稼働コストの構造を見直し、採算性の再構築が必要。';
+      } else if (item.key === 'budgetGrossProfit') {
+        if (pctNum >= 0) reasonText = '26期対比で達成率向上。予算に対する粗利計画を着実にクリア。';
+        else reasonText = '26期対比で達成率低下。予算目標に対する粗利進捗の改善策を検討。';
+      } else if (item.key === 'budgetOperatingProfit') {
+        if (pctNum >= 0) reasonText = '26期対比で達成率向上。営業利益の予算対比達成が順調に伸長。';
+        else reasonText = '26期対比で達成率低下。販管費および営業利益目標の進捗再検証を推奨。';
       } else {
         reasonText = isGood ? '26期より改善・向上。' : '26期より悪化・低下。確認を推奨。';
       }
@@ -352,6 +368,7 @@ function DashboardContent() {
         name: item.name,
         desc: item.desc,
         isReverse: item.isReverse,
+        isForGrade: item.isForGrade,
         v26: v26,
         v27: v27,
         unit: item.unit,
@@ -444,8 +461,9 @@ function DashboardContent() {
     return list;
   }, [data, siteConfig]);
 
+  // ★ 総合実績ランク判定：作業生産性は全体のみを対象とする（isForGrade === true）
   const gradeInfo = useMemo(() => {
-    const validMetrics = metricAnalysis.filter(m => m.key !== 'dx');
+    const validMetrics = metricAnalysis.filter(m => m.isForGrade);
     const goodCount = validMetrics.filter(m => m.isGood).length;
     const totalCount = validMetrics.length;
 
@@ -454,17 +472,17 @@ function DashboardContent() {
     let borderStyle = 'border-purple-200 bg-gradient-to-br from-purple-50/50 via-white to-indigo-50/30';
     let label = '最高水準の拠点運営';
 
-    if (goodCount >= 8) {
+    if (goodCount >= 7) {
       grade = 'S';
       badgeClass = 'from-purple-600 via-indigo-600 to-blue-600 text-white shadow-purple-100';
       borderStyle = 'border-purple-200 bg-gradient-to-br from-purple-50/60 via-white to-indigo-50/30';
       label = '最高水準の拠点運営';
-    } else if (goodCount >= 6) {
+    } else if (goodCount >= 5) {
       grade = 'A';
       badgeClass = 'from-emerald-600 to-teal-600 text-white shadow-emerald-100';
       borderStyle = 'border-emerald-200 bg-gradient-to-br from-emerald-50/60 via-white to-teal-50/30';
       label = '極めて優秀な拠点運営';
-    } else if (goodCount >= 4) {
+    } else if (goodCount >= 3) {
       grade = 'B';
       badgeClass = 'from-blue-600 to-cyan-600 text-white shadow-blue-100';
       borderStyle = 'border-blue-200 bg-gradient-to-br from-blue-50/60 via-white to-cyan-50/30';
@@ -597,7 +615,7 @@ function DashboardContent() {
                     {gradeInfo.grade}
                   </div>
                   <span className="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full mt-1">
-                    全{gradeInfo.totalCount}指標評価
+                    共通主要{gradeInfo.totalCount}指標評価
                   </span>
                 </div>
 
@@ -657,13 +675,13 @@ function DashboardContent() {
               <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-bold z-10">
                 <span className="flex items-center gap-1 text-slate-400">
                   <Target className="w-3 h-3" />
-                  <span>昨対改善数 判定基準:</span>
+                  <span>判定基準（作業生産性は全体のみ対象）:</span>
                 </span>
                 <div className="flex gap-1.5">
-                  <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">S: 8~</span>
-                  <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">A: 6~7</span>
-                  <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">B: 4~5</span>
-                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">C: 2~3</span>
+                  <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">S: 7~8</span>
+                  <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">A: 5~6</span>
+                  <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">B: 3~4</span>
+                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">C: 2</span>
                   <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">D: ~1</span>
                 </div>
               </div>
@@ -972,7 +990,12 @@ function DashboardContent() {
                       let avg26 = m.key === 'sales' ? sum26 : sum26 / validCount;
                       let avg27 = m.key === 'sales' ? sum27 : sum27 / validCount;
                       
-                      if (m.key === 'grossProfit' || m.key === 'operatingProfit') {
+                      if (
+                        m.key === 'grossProfit' ||
+                        m.key === 'operatingProfit' ||
+                        m.key === 'budgetGrossProfit' ||
+                        m.key === 'budgetOperatingProfit'
+                      ) {
                         avg26 = avg26 * 100;
                         avg27 = avg27 * 100;
                       }
@@ -990,7 +1013,12 @@ function DashboardContent() {
                             let v26 = Number(monthData[k26]) || 0;
                             let v27 = Number(monthData[k27]) || 0;
                             
-                            if (m.key === 'grossProfit' || m.key === 'operatingProfit') {
+                            if (
+                              m.key === 'grossProfit' ||
+                              m.key === 'operatingProfit' ||
+                              m.key === 'budgetGrossProfit' ||
+                              m.key === 'budgetOperatingProfit'
+                            ) {
                               v26 = v26 * 100;
                               v27 = v27 * 100;
                             }

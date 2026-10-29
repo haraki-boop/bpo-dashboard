@@ -10,11 +10,6 @@ interface SiteItem {
   desc: string;
   image: string;
   scaleClass?: string;
-  hasChikusan?: boolean;
-  hasSuisan?: boolean;
-  hasDelica?: boolean;
-  hasShowaDepts?: boolean;
-  hasOieDepts?: boolean;
 }
 
 const sites: SiteItem[] = [
@@ -23,9 +18,6 @@ const sites: SiteItem[] = [
     name: 'ヤマナカ',
     desc: 'ヤマナカ BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/yamanaka.png',
-    hasChikusan: true,
-    hasSuisan: true,
-    hasDelica: false,
   },
   {
     id: 'bisai',
@@ -33,9 +25,6 @@ const sites: SiteItem[] = [
     desc: 'AFS尾西 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/bisai.png',
     scaleClass: 'scale-150',
-    hasChikusan: true,
-    hasSuisan: true,
-    hasDelica: true,
   },
   {
     id: 'tokyu',
@@ -43,62 +32,38 @@ const sites: SiteItem[] = [
     desc: '東急ストア BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/tokyu.png',
     scaleClass: 'scale-150',
-    hasChikusan: true,
-    hasSuisan: false,
-    hasDelica: false,
   },
   {
     id: 'showa',
     name: '昭和冷蔵',
     desc: '昭和冷蔵 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/syowa.jpg',
-    hasShowaDepts: true,
   },
   {
     id: 'oie',
     name: '尾家産業',
     desc: '尾家産業 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/oie.png',
-    hasOieDepts: true,
   },
 ];
 
-const calculateSiteGrade = (data: any[], site: SiteItem): string => {
+// ★ ランク判定対象：生産性は「作業生産性(全体)」のみを使用（共通6指標）
+const calculateSiteGrade = (data: any[]): string => {
   if (!Array.isArray(data) || data.length === 0) return '';
 
   const metrics: { key: string; isReverse: boolean }[] = [
     { key: 'sales', isReverse: false },
     { key: 'prodSales', isReverse: false },
-    { key: 'prodAll', isReverse: false },
-  ];
-
-  if (site.hasChikusan) metrics.push({ key: 'prodChikusan', isReverse: false });
-  if (site.hasSuisan) metrics.push({ key: 'prodSuisan', isReverse: false });
-  if (site.hasDelica) metrics.push({ key: 'prodDelica', isReverse: false });
-
-  if (site.hasShowaDepts) {
-    metrics.push(
-      { key: 'prodRicos', isReverse: false },
-      { key: 'prodIkkatsu', isReverse: false },
-      { key: 'prodBronco', isReverse: false },
-      { key: 'prodHanyou', isReverse: false }
-    );
-  }
-
-  if (site.hasOieDepts) {
-    metrics.push(
-      { key: 'prodHannan', isReverse: false },
-      { key: 'prodNsc', isReverse: false }
-    );
-  }
-
-  metrics.push(
+    { key: 'prodAll', isReverse: false }, // ★ 全体のみ
     { key: 'error', isReverse: true },
     { key: 'grossProfit', isReverse: false },
-    { key: 'operatingProfit', isReverse: false }
-  );
+    { key: 'operatingProfit', isReverse: false },
+    { key: 'budgetGrossProfit', isReverse: false },
+    { key: 'budgetOperatingProfit', isReverse: false },
+  ];
 
   let goodCount = 0;
+  let activeMetricCount = 0;
 
   metrics.forEach((m) => {
     const k26 = `${m.key}26`;
@@ -106,6 +71,7 @@ const calculateSiteGrade = (data: any[], site: SiteItem): string => {
     const valid = data.filter((d) => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
     if (valid.length === 0) return;
 
+    activeMetricCount++;
     const sum26 = valid.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
     const sum27 = valid.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
     const diff = sum27 - sum26;
@@ -114,9 +80,12 @@ const calculateSiteGrade = (data: any[], site: SiteItem): string => {
     if (isGood) goodCount++;
   });
 
-  if (goodCount >= 8) return 'S';
-  if (goodCount >= 6) return 'A';
-  if (goodCount >= 4) return 'B';
+  if (activeMetricCount === 0) return '';
+
+  // 基準（全8指標中）：S: 7~8, A: 5~6, B: 3~4, C: 2, D: ~1
+  if (goodCount >= 7) return 'S';
+  if (goodCount >= 5) return 'A';
+  if (goodCount >= 3) return 'B';
   if (goodCount >= 2) return 'C';
   return 'D';
 };
@@ -166,7 +135,7 @@ export default function PortalPage() {
           const res = await fetch(`/api/dashboard?site=${site.id}`);
           const json = await res.json();
           if (Array.isArray(json.data)) {
-            results[site.id] = calculateSiteGrade(json.data, site);
+            results[site.id] = calculateSiteGrade(json.data);
           } else {
             results[site.id] = '';
           }
@@ -238,7 +207,7 @@ export default function PortalPage() {
                   key={grade}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold transition-all ${
                     isActive
-                      ? `${cfg.bg} ${cfg.text} border`
+                      ? `${cfg.bg}${cfg.text} border`
                       : 'text-slate-300 bg-transparent'
                   }`}
                 >
@@ -263,7 +232,7 @@ export default function PortalPage() {
                 href={`/${site.id}`}
                 className={`group relative bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-h-[175px] ${wmStyle.bgGlow}`}
               >
-                {/* ★ 2段階拡大した背景透かし文字パターン（text-[16rem]） */}
+                {/* 背景透かし文字パターン（約256px: text-[16rem]） */}
                 {currentGrade && (
                   <span
                     aria-hidden="true"
