@@ -90,21 +90,35 @@ const sites: SiteItem[] = [
   },
 ];
 
+const parseCleanNumber = (val: any): number | null => {
+  if (val === null || val === undefined || val === '') return null;
+  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/[^0-9.-]/g, ''));
+  return isNaN(num) ? null : num;
+};
+
 const calculateSiteGrade = (rawData: any[]): string => {
   if (!Array.isArray(rawData) || rawData.length === 0) return '';
 
-  const data = rawData.map((d: any) => ({
-    ...d,
-    sales26: Number(String(d.sales26 || 0).replace(/[^0-9.-]+/g, '')),
-    sales27: Number(String(d.sales27 || 0).replace(/[^0-9.-]+/g, '')),
-    volume26: Number(String(d.volume26 || 0).replace(/[^0-9.-]+/g, '')),
-    volume27: Number(String(d.volume27 || 0).replace(/[^0-9.-]+/g, '')),
-  }));
+  const data = rawData.map((d: any) => {
+    const item: any = { ...d };
+    Object.keys(item).forEach((k) => {
+      if (k !== 'period' && k !== 'eventNote' && k !== 'isWarning') {
+        item[k] = parseCleanNumber(item[k]);
+      }
+    });
+    return item;
+  });
 
   const getPairedMonths = (key: string) => {
     const k26 = `${key}26`;
     const k27 = `${key}27`;
-    return data.filter((d) => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+    return data.filter((d) => {
+      const v26 = d[k26];
+      const v27 = d[k27];
+      return v26 !== null && v26 !== undefined && !isNaN(Number(v26)) &&
+             v27 !== null && v27 !== undefined && !isNaN(Number(v27)) &&
+             Number(v26) !== 0 && Number(v27) !== 0;
+    });
   };
 
   const calcPairedSum = (key: string, term: '26' | '27') => {
@@ -145,8 +159,8 @@ const calculateSiteGrade = (rawData: any[]): string => {
       item.key === 'budgetGrossProfit' ||
       item.key === 'budgetOperatingProfit'
     ) {
-      v26 = v26 * 100;
-      v27 = v27 * 100;
+      if (Math.abs(v26) <= 2.5 && v26 !== 0) v26 = v26 * 100;
+      if (Math.abs(v27) <= 2.5 && v27 !== 0) v27 = v27 * 100;
     }
 
     const diff = v27 - v26;

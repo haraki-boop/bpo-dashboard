@@ -27,64 +27,64 @@ import {
 interface BpoData {
   period: string;
   eventNote?: string;
-  sales26: number; sales27: number;
-  volume26: number; volume27: number;
-  prodSales26: number; prodSales27: number;
-  prodAll26: number; prodAll27: number;
-  prodChikusan26?: number; prodChikusan27?: number;
-  prodSuisan26?: number; prodSuisan27?: number;
-  prodDelica26?: number; prodDelica27?: number;
-  packAll26?: number; packAll27?: number;
-  packChikusan26?: number; packChikusan27?: number;
-  packSuisan26?: number; packSuisan27?: number;
-  packDelica26?: number; packDelica27?: number;
-  prodRicos26?: number; prodRicos27?: number;
-  prodIkkatsu26?: number; prodIkkatsu27?: number;
-  prodBronco26?: number; prodBronco27?: number;
-  prodHanyou26?: number; prodHanyou27?: number;
-  packRicos26?: number; packRicos27?: number;
-  packIkkatsu26?: number; packIkkatsu27?: number;
-  packBronco26?: number; packBronco27?: number;
-  packHanyou26?: number; packHanyou27?: number;
-  prodHannan26?: number; prodHannan27?: number;
-  prodNsc26?: number; prodNsc27?: number;
-  packHannan26?: number; packHannan27?: number;
-  packNsc26?: number; packNsc27?: number;
+  sales26: number | null; sales27: number | null;
+  volume26: number | null; volume27: number | null;
+  prodSales26: number | null; prodSales27: number | null;
+  prodAll26: number | null; prodAll27: number | null;
+  prodChikusan26?: number | null; prodChikusan27?: number | null;
+  prodSuisan26?: number | null; prodSuisan27?: number | null;
+  prodDelica26?: number | null; prodDelica27?: number | null;
+  packAll26?: number | null; packAll27?: number | null;
+  packChikusan26?: number | null; packChikusan27?: number | null;
+  packSuisan26?: number | null; packSuisan27?: number | null;
+  packDelica26?: number | null; packDelica27?: number | null;
+  prodRicos26?: number | null; prodRicos27?: number | null;
+  prodIkkatsu26?: number | null; prodIkkatsu27?: number | null;
+  prodBronco26?: number | null; prodBronco27?: number | null;
+  prodHanyou26?: number | null; prodHanyou27?: number | null;
+  packRicos26?: number | null; packRicos27?: number | null;
+  packIkkatsu26?: number | null; packIkkatsu27?: number | null;
+  packBronco26?: number | null; packBronco27?: number | null;
+  packHanyou26?: number | null; packHanyou27?: number | null;
+  prodHannan26?: number | null; prodHannan27?: number | null;
+  prodNsc26?: number | null; prodNsc27?: number | null;
+  packHannan26?: number | null; packHannan27?: number | null;
+  packNsc26?: number | null; packNsc27?: number | null;
   // 神戸カインズ用
-  coeffAll26?: number; coeffAll27?: number;
-  coeffNonSorter26?: number; coeffNonSorter27?: number;
-  csSorter26?: number; csSorter27?: number;
-  csNonSorter26?: number; csNonSorter27?: number;
+  coeffAll26?: number | null; coeffAll27?: number | null;
+  coeffNonSorter26?: number | null; coeffNonSorter27?: number | null;
+  csSorter26?: number | null; csSorter27?: number | null;
+  csNonSorter26?: number | null; csNonSorter27?: number | null;
   // 福岡カインズ用
-  prodKyushu26?: number; prodKyushu27?: number;
-  prodOkinawa26?: number; prodOkinawa27?: number;
-  prodManHour26?: number; prodManHour27?: number;
-  prodQuantityHour26?: number; prodQuantityHour27?: number;
-  kagoStack26?: number; kagoStack27?: number;
+  prodKyushu26?: number | null; prodKyushu27?: number | null;
+  prodOkinawa26?: number | null; prodOkinawa27?: number | null;
+  prodManHour26?: number | null; prodManHour27?: number | null;
+  prodQuantityHour26?: number | null; prodQuantityHour27?: number | null;
+  kagoStack26?: number | null; kagoStack27?: number | null;
   // クラフトデリカ用
-  prodCraftDelica26?: number; prodCraftDelica27?: number;
-  prodCraftGenryo26?: number; prodCraftGenryo27?: number;
-  packCraftDelica26?: number; packCraftDelica27?: number;
-  packCraftGenryo26?: number; packCraftGenryo27?: number;
-  packCraftReizo26?: number; packCraftReizo27?: number;
+  prodCraftDelica26?: number | null; prodCraftDelica27?: number | null;
+  prodCraftGenryo26?: number | null; prodCraftGenryo27?: number | null;
+  packCraftDelica26?: number | null; packCraftDelica27?: number | null;
+  packCraftGenryo26?: number | null; packCraftGenryo27?: number | null;
+  packCraftReizo26?: number | null; packCraftReizo27?: number | null;
   // メディエントランス用
-  prodMediNyuka26?: number; prodMediNyuka27?: number;
-  prodMediShukka26?: number; prodMediShukka27?: number;
-  packMediNyuka26?: number; packMediNyuka27?: number;
-  packMediShukka26?: number; packMediShukka27?: number;
+  prodMediNyuka26?: number | null; prodMediNyuka27?: number | null;
+  prodMediShukka26?: number | null; prodMediShukka27?: number | null;
+  packMediNyuka26?: number | null; packMediNyuka27?: number | null;
+  packMediShukka26?: number | null; packMediShukka27?: number | null;
   // 三井食品用
-  prodMitsuiSugishoku26?: number; prodMitsuiSugishoku27?: number;
-  prodMitsuiSugishu26?: number; prodMitsuiSugishu27?: number;
-  prodMitsuiOther26?: number; prodMitsuiOther27?: number;
+  prodMitsuiSugishoku26?: number | null; prodMitsuiSugishoku27?: number | null;
+  prodMitsuiSugishu26?: number | null; prodMitsuiSugishu27?: number | null;
+  prodMitsuiOther26?: number | null; prodMitsuiOther27?: number | null;
   // ランドポート用
-  prodLandportRs26?: number; prodLandportRs27?: number;
+  prodLandportRs26?: number | null; prodLandportRs27?: number | null;
 
-  error26: number; error27: number; isWarning: boolean;
-  dx26: number; dx27: number;
-  grossProfit26: number; grossProfit27: number;
-  operatingProfit26: number; operatingProfit27: number;
-  budgetGrossProfit26?: number; budgetGrossProfit27?: number;
-  budgetOperatingProfit26?: number; budgetOperatingProfit27?: number;
+  error26: number | null; error27: number | null; isWarning: boolean;
+  dx26: number | null; dx27: number | null;
+  grossProfit26: number | null; grossProfit27: number | null;
+  operatingProfit26: number | null; operatingProfit27: number | null;
+  budgetGrossProfit26?: number | null; budgetGrossProfit27?: number | null;
+  budgetOperatingProfit26?: number | null; budgetOperatingProfit27?: number | null;
 }
 
 const SITE_CONFIGS: Record<string, {
@@ -106,32 +106,24 @@ const SITE_CONFIGS: Record<string, {
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
   },
   bisai: {
     name: 'AFS尾西',
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: true,
-    hasShowaDepts: false,
-    hasOieDepts: false,
   },
   tokyu: {
     name: '東急ストア',
     hasChikusan: true,
     hasSuisan: false,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
   },
   mitsui: {
     name: '三井食品',
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
     hasMitsui: true,
   },
   minamikanto: {
@@ -139,8 +131,6 @@ const SITE_CONFIGS: Record<string, {
     hasChikusan: true,
     hasSuisan: true,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
   },
   showa: {
     name: '昭和冷蔵',
@@ -148,15 +138,12 @@ const SITE_CONFIGS: Record<string, {
     hasSuisan: false,
     hasDelica: false,
     hasShowaDepts: true,
-    hasOieDepts: false,
   },
   landport: {
     name: 'ランドポート',
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
     hasLandport: true,
   },
   craft: {
@@ -164,8 +151,6 @@ const SITE_CONFIGS: Record<string, {
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
     hasCraft: true,
   },
   oie: {
@@ -173,7 +158,6 @@ const SITE_CONFIGS: Record<string, {
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
-    hasShowaDepts: false,
     hasOieDepts: true,
   },
   kobe_cainz: {
@@ -181,8 +165,6 @@ const SITE_CONFIGS: Record<string, {
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
     hasKobeCainz: true,
   },
   fukuoka_cainz: {
@@ -190,8 +172,6 @@ const SITE_CONFIGS: Record<string, {
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
     hasFukuokaCainz: true,
   },
   medientrance: {
@@ -199,18 +179,16 @@ const SITE_CONFIGS: Record<string, {
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
     hasMedi: true,
   },
 };
 
-const formatValue = (key: string, value: number) => {
+const formatValue = (key: string, value: number | null | undefined) => {
   if (value === undefined || value === null || isNaN(value)) return 'ー';
   
   switch (key) {
     case 'sales': 
-      return `¥${Number(value).toLocaleString('ja-JP')}`;
+      return `¥${Math.round(Number(value)).toLocaleString('ja-JP')}`;
     case 'salesWan':
       return `${(Number(value) / 10000).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     case 'volume':
@@ -274,6 +252,12 @@ const formatValue = (key: string, value: number) => {
   }
 };
 
+const parseCleanNumber = (val: any): number | null => {
+  if (val === null || val === undefined || val === '') return null;
+  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/[^0-9.-]/g, ''));
+  return isNaN(num) ? null : num;
+};
+
 function DashboardContent() {
   const params = useParams();
   const currentSite = (params?.site as string) || 'yamanaka';
@@ -282,14 +266,6 @@ function DashboardContent() {
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
-    hasShowaDepts: false,
-    hasOieDepts: false,
-    hasKobeCainz: false,
-    hasFukuokaCainz: false,
-    hasCraft: false,
-    hasMedi: false,
-    hasMitsui: false,
-    hasLandport: false,
   };
   const siteDisplayName = siteConfig.name;
 
@@ -305,13 +281,15 @@ function DashboardContent() {
       const response = await fetch(`/api/dashboard?site=${siteName}`);
       const result = await response.json();
       if (Array.isArray(result.data)) {
-        const processedData = result.data.map((d: any) => ({
-          ...d,
-          sales26: Number(String(d.sales26 || 0).replace(/[^0-9.-]+/g,"")),
-          sales27: Number(String(d.sales27 || 0).replace(/[^0-9.-]+/g,"")),
-          volume26: Number(String(d.volume26 || 0).replace(/[^0-9.-]+/g,"")),
-          volume27: Number(String(d.volume27 || 0).replace(/[^0-9.-]+/g,""))
-        }));
+        const processedData = result.data.map((d: any) => {
+          const item: any = { ...d };
+          Object.keys(item).forEach((k) => {
+            if (k !== 'period' && k !== 'eventNote' && k !== 'isWarning') {
+              item[k] = parseCleanNumber(item[k]);
+            }
+          });
+          return item as BpoData;
+        });
         setData(processedData);
       }
     } catch (error) {
@@ -325,10 +303,17 @@ function DashboardContent() {
     fetchData(currentSite);
   }, [currentSite]);
 
+  // 両期ともに有効な値が存在する月のみ抽出（未入力月・null・0・#DIV/0! を完全排除）
   const getPairedMonths = (key: string) => {
     const k26 = `${key}26` as keyof BpoData;
     const k27 = `${key}27` as keyof BpoData;
-    return data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+    return data.filter(d => {
+      const v26 = d[k26];
+      const v27 = d[k27];
+      return v26 !== null && v26 !== undefined && !isNaN(Number(v26)) &&
+             v27 !== null && v27 !== undefined && !isNaN(Number(v27)) &&
+             Number(v26) !== 0 && Number(v27) !== 0;
+    });
   };
 
   const calcPairedSum = (key: string, term: '26' | '27') => {
@@ -355,8 +340,14 @@ function DashboardContent() {
   const avgProdAll27 = calcPairedAvg('prodAll', '27');
   const prodGrowth = avgProdAll26 > 0 ? (((avgProdAll27 - avgProdAll26) / avgProdAll26) * 100).toFixed(2) : '0.00';
 
-  const avgOpProfit26_pct = calcPairedAvg('operatingProfit', '26') * 100;
-  const avgOpProfit27_pct = calcPairedAvg('operatingProfit', '27') * 100;
+  const getPercentNorm = (key: string, term: '26' | '27') => {
+    const raw = calcPairedAvg(key, term);
+    if (raw === 0) return 0;
+    return Math.abs(raw) <= 2.5 ? raw * 100 : raw;
+  };
+
+  const avgOpProfit26_pct = getPercentNorm('operatingProfit', '26');
+  const avgOpProfit27_pct = getPercentNorm('operatingProfit', '27');
   const profitGrowth = (avgOpProfit27_pct - avgOpProfit26_pct).toFixed(2);
 
   const months = ['4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月', '1月', '2月', '3月'];
@@ -366,8 +357,8 @@ function DashboardContent() {
       if (found) return { ...found, period: m };
       return {
         period: m,
-        sales26: 0, sales27: 0,
-        prodAll26: 0, prodAll27: 0,
+        sales26: null, sales27: null,
+        prodAll26: null, prodAll27: null,
         isWarning: false,
         eventNote: ''
       } as BpoData;
@@ -451,7 +442,6 @@ function DashboardContent() {
       );
     }
 
-    // ランドポート用 部門指標
     if (siteConfig.hasLandport) {
       list.push(
         { id: subId++, key: 'prodLandportRs', name: '作業生産性(RS)', unit: '', isReverse: false, desc: 'RS部門の作業効率', isForGrade: false }
@@ -461,8 +451,8 @@ function DashboardContent() {
     list.push(
       { id: 5, key: 'error', name: '5. 事故評価(エラー率)', unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)', isForGrade: true },
       { id: 6, key: 'dx', name: 'DX評価', unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標', isForGrade: false },
-      { id: 7, key: 'grossProfit', name: '7. 売上総利益率', unit: '%', isReverse: false, desc: '粗利益率のポイント推移', isForGrade: true },
-      { id: 8, key: 'operatingProfit', name: '8. 営業利益率', unit: '%', isReverse: false, desc: '営業利益率のポイント推移', isForGrade: true },
+      { id: 7, key: 'grossProfit', name: '7. 売上総利益率', unit: '%', isReverse: false, desc: '粗利益率の推移', isForGrade: true },
+      { id: 8, key: 'operatingProfit', name: '8. 営業利益率', unit: '%', isReverse: false, desc: '営業利益率の推移', isForGrade: true },
       { id: 9, key: 'budgetGrossProfit', name: '9. 予算総利益評価', unit: '%', isReverse: false, desc: '売上総利益実績 ÷ 予算売上総利益', isForGrade: true },
       { id: 10, key: 'budgetOperatingProfit', name: '10. 予算営業利益評価', unit: '%', isReverse: false, desc: '営業利益実績 ÷ 予算営業利益', isForGrade: true }
     );
@@ -481,12 +471,12 @@ function DashboardContent() {
         item.key === 'budgetGrossProfit' ||
         item.key === 'budgetOperatingProfit'
       ) {
-        v26 = v26 * 100;
-        v27 = v27 * 100;
+        if (Math.abs(v26) <= 2.5 && v26 !== 0) v26 = v26 * 100;
+        if (Math.abs(v27) <= 2.5 && v27 !== 0) v27 = v27 * 100;
       }
 
       const diff = v27 - v26;
-      const pctNum = v26 > 0 ? (diff / v26) * 100 : 0;
+      const pctNum = v26 !== 0 ? (diff / Math.abs(v26)) * 100 : 0;
       const isGood = item.isReverse ? diff <= 0 : diff >= 0;
 
       let reasonText = '';
@@ -543,6 +533,7 @@ function DashboardContent() {
       };
     });
   }, [totalSales26, totalSales27, data, metricsList]);
+
   const packUnitSummary = useMemo(() => {
     let unitTitle = 'パック単価(全体)';
     if (siteConfig.hasOieDepts) unitTitle = 'タッチ単価(全体)';
@@ -551,7 +542,6 @@ function DashboardContent() {
 
     const list: any[] = [];
 
-    // 福岡カインズ・三井食品以外は全体単価を表示
     if (!siteConfig.hasFukuokaCainz && !siteConfig.hasMitsui) {
       list.push({
         name: unitTitle,
@@ -1072,14 +1062,14 @@ function DashboardContent() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {fullYearData
-                      .filter(m => (m.sales26 || 0) > 0 || (m.sales27 || 0) > 0 || (m.prodAll26 || 0) > 0 || (m.prodAll27 || 0) > 0 || Boolean(m.eventNote))
+                      .filter(m => (Number(m.sales26) || 0) > 0 || (Number(m.sales27) || 0) > 0 || (Number(m.prodAll26) || 0) > 0 || (Number(m.prodAll27) || 0) > 0 || Boolean(m.eventNote))
                       .map((m, idx) => {
-                        const s26 = m.sales26 || 0;
-                        const s27 = m.sales27 || 0;
+                        const s26 = Number(m.sales26) || 0;
+                        const s27 = Number(m.sales27) || 0;
                         const sPct = (s26 > 0 && s27 > 0) ? (((s27 - s26) / s26) * 100).toFixed(2) : null;
                         
-                        const p26 = m.prodAll26 || 0;
-                        const p27 = m.prodAll27 || 0;
+                        const p26 = Number(m.prodAll26) || 0;
+                        const p27 = Number(m.prodAll27) || 0;
                         const pPct = (p26 > 0 && p27 > 0) ? (((p27 - p26) / p26) * 100).toFixed(2) : null;
 
                         return (
@@ -1259,7 +1249,13 @@ function DashboardContent() {
                       const k26 = `${m.key}26` as keyof BpoData;
                       const k27 = `${m.key}27` as keyof BpoData;
                       
-                      const pairedMonths = data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+                      const pairedMonths = data.filter(d => {
+                        const v1 = d[k26];
+                        const v2 = d[k27];
+                        return v1 !== null && v1 !== undefined && !isNaN(Number(v1)) &&
+                               v2 !== null && v2 !== undefined && !isNaN(Number(v2)) &&
+                               Number(v1) !== 0 && Number(v2) !== 0;
+                      });
                       const validCount = pairedMonths.length > 0 ? pairedMonths.length : 1;
 
                       let sum26 = pairedMonths.reduce((sum, d) => sum + (Number(d[k26]) || 0), 0);
@@ -1274,12 +1270,12 @@ function DashboardContent() {
                         m.key === 'budgetGrossProfit' ||
                         m.key === 'budgetOperatingProfit'
                       ) {
-                        avg26 = avg26 * 100;
-                        avg27 = avg27 * 100;
+                        if (Math.abs(avg26) <= 2.5 && avg26 !== 0) avg26 = avg26 * 100;
+                        if (Math.abs(avg27) <= 2.5 && avg27 !== 0) avg27 = avg27 * 100;
                       }
 
                       const hasValidPaired = pairedMonths.length > 0;
-                      const totalDiffPct = (hasValidPaired && avg26 > 0) ? ((avg27 - avg26) / avg26) * 100 : 0;
+                      const totalDiffPct = (hasValidPaired && avg26 !== 0) ? ((avg27 - avg26) / Math.abs(avg26)) * 100 : 0;
 
                       return (
                         <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
@@ -1288,8 +1284,15 @@ function DashboardContent() {
                             <span className="block text-[10px] font-normal text-slate-400">{m.desc}</span>
                           </td>
                           {displayData.map(monthData => {
-                            let v26 = Number(monthData[k26]) || 0;
-                            let v27 = Number(monthData[k27]) || 0;
+                            let raw26 = monthData[k26];
+                            let raw27 = monthData[k27];
+
+                            const isBothActive = raw26 !== null && raw26 !== undefined && !isNaN(Number(raw26)) &&
+                                                 raw27 !== null && raw27 !== undefined && !isNaN(Number(raw27)) &&
+                                                 Number(raw26) !== 0 && Number(raw27) !== 0;
+
+                            let v26 = Number(raw26) || 0;
+                            let v27 = Number(raw27) || 0;
                             
                             if (
                               m.key === 'grossProfit' ||
@@ -1297,12 +1300,11 @@ function DashboardContent() {
                               m.key === 'budgetGrossProfit' ||
                               m.key === 'budgetOperatingProfit'
                             ) {
-                              v26 = v26 * 100;
-                              v27 = v27 * 100;
+                              if (Math.abs(v26) <= 2.5 && v26 !== 0) v26 = v26 * 100;
+                              if (Math.abs(v27) <= 2.5 && v27 !== 0) v27 = v27 * 100;
                             }
 
-                            const isBothActive = v26 > 0 && v27 > 0;
-                            const diffPct = isBothActive ? ((v27 - v26) / v26) * 100 : 0;
+                            const diffPct = isBothActive && v26 !== 0 ? ((v27 - v26) / Math.abs(v26)) * 100 : 0;
                             
                             if (m.key === 'dx' && v26 === 0 && v27 === 0) {
                               return (
@@ -1384,7 +1386,13 @@ function DashboardContent() {
                           const k26 = `${m.key}26` as keyof BpoData;
                           const k27 = `${m.key}27` as keyof BpoData;
                           
-                          const pairedMonths = data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+                          const pairedMonths = data.filter(d => {
+                            const v1 = d[k26];
+                            const v2 = d[k27];
+                            return v1 !== null && v1 !== undefined && !isNaN(Number(v1)) &&
+                                   v2 !== null && v2 !== undefined && !isNaN(Number(v2)) &&
+                                   Number(v1) !== 0 && Number(v2) !== 0;
+                          });
                           const validCount = pairedMonths.length > 0 ? pairedMonths.length : 1;
 
                           const sum26 = pairedMonths.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
@@ -1402,10 +1410,15 @@ function DashboardContent() {
                                 <span className="block text-[10px] font-normal text-slate-400">{m.desc}</span>
                               </td>
                               {displayData.map(monthData => {
-                                const v26 = Number(monthData[k26]) || 0;
-                                const v27 = Number(monthData[k27]) || 0;
-                                const isBothActive = v26 > 0 && v27 > 0;
-                                const diffPct = isBothActive ? ((v27 - v26) / v26) * 100 : 0;
+                                const raw26 = monthData[k26];
+                                const raw27 = monthData[k27];
+                                const isBothActive = raw26 !== null && raw26 !== undefined && !isNaN(Number(raw26)) &&
+                                                     raw27 !== null && raw27 !== undefined && !isNaN(Number(raw27)) &&
+                                                     Number(raw26) !== 0 && Number(raw27) !== 0;
+
+                                const v26 = Number(raw26) || 0;
+                                const v27 = Number(raw27) || 0;
+                                const diffPct = isBothActive && v26 > 0 ? ((v27 - v26) / v26) * 100 : 0;
                                 const cellBg = getHeatmapBg(diffPct, m.isReverse, true);
 
                                 return (
