@@ -52,13 +52,23 @@ const sites: SiteItem[] = [
     image: '/bisai.png',
     scaleClass: 'scale-150',
   },
+  {
+    id: 'kobe_cainz',
+    name: '神戸カインズ',
+    desc: '神戸カインズ BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/cainz.jpg',
+  },
+  {
+    id: 'fukuoka_cainz',
+    name: '福岡カインズ',
+    desc: '福岡カインズ BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/cainz.jpg',
+  },
 ];
 
-// ★ app/[site]/page.tsx と100%同一のデータ正規化＆ランク判定ロジック
 const calculateSiteGrade = (rawData: any[]): string => {
   if (!Array.isArray(rawData) || rawData.length === 0) return '';
 
-  // 1. 金額文字列（¥やカンマ）の数値クリーニング（詳細画面と完全一致）
   const data = rawData.map((d: any) => ({
     ...d,
     sales26: Number(String(d.sales26 || 0).replace(/[^0-9.-]+/g, '')),
@@ -120,7 +130,6 @@ const calculateSiteGrade = (rawData: any[]): string => {
     if (isGood) goodCount++;
   });
 
-  // 判定基準: S:8, A:7, B:5~6, C:3~4, D:1~2
   if (goodCount >= 8) return 'S';
   if (goodCount >= 7) return 'A';
   if (goodCount >= 5) return 'B';
@@ -203,7 +212,6 @@ export default function PortalPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-12 font-sans flex flex-col items-center justify-center">
       <div className="max-w-4xl w-full">
         
-        {/* ヘッダー */}
         <div className="text-center mb-10 flex flex-col items-center">
           <div className="mb-4 h-12 flex items-center justify-center">
             <img
@@ -221,7 +229,6 @@ export default function PortalPage() {
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
           <p className="text-slate-500 text-sm font-semibold mt-2">閲覧する拠点を選択してください</p>
 
-          {/* シンプルな横並びステータス */}
           <div className="mt-6 inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
             <div className="px-3 py-1 text-[11px] font-bold text-slate-400 border-r border-slate-100 flex items-center gap-1.5">
               <span>全{sites.length}拠点</span>
@@ -258,7 +265,6 @@ export default function PortalPage() {
           </div>
         </div>
 
-        {/* 現場カード一覧 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {sites.map((site) => {
             const currentGrade = siteGrades[site.id] || '';
@@ -270,7 +276,6 @@ export default function PortalPage() {
                 href={`/${site.id}`}
                 className={`group relative bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-h-[175px] ${wmStyle.bgGlow}`}
               >
-                {/* 背景透かし文字パターン（約256px: text-[16rem]） */}
                 {currentGrade && (
                   <span
                     aria-hidden="true"

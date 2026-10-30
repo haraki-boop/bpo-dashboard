@@ -31,12 +31,12 @@ interface BpoData {
   volume26: number; volume27: number;
   prodSales26: number; prodSales27: number;
   prodAll26: number; prodAll27: number;
-  prodChikusan26: number; prodChikusan27: number;
-  prodSuisan26: number; prodSuisan27: number;
+  prodChikusan26?: number; prodChikusan27?: number;
+  prodSuisan26?: number; prodSuisan27?: number;
   prodDelica26?: number; prodDelica27?: number;
-  packAll26: number; packAll27: number;
-  packChikusan26: number; packChikusan27: number;
-  packSuisan26: number; packSuisan27: number;
+  packAll26?: number; packAll27?: number;
+  packChikusan26?: number; packChikusan27?: number;
+  packSuisan26?: number; packSuisan27?: number;
   packDelica26?: number; packDelica27?: number;
   prodRicos26?: number; prodRicos27?: number;
   prodIkkatsu26?: number; prodIkkatsu27?: number;
@@ -50,6 +50,17 @@ interface BpoData {
   prodNsc26?: number; prodNsc27?: number;
   packHannan26?: number; packHannan27?: number;
   packNsc26?: number; packNsc27?: number;
+  // 神戸カインズ用
+  coeffAll26?: number; coeffAll27?: number;
+  coeffNonSorter26?: number; coeffNonSorter27?: number;
+  csSorter26?: number; csSorter27?: number;
+  csNonSorter26?: number; csNonSorter27?: number;
+  // 福岡カインズ用
+  prodKyushu26?: number; prodKyushu27?: number;
+  prodOkinawa26?: number; prodOkinawa27?: number;
+  prodManHour26?: number; prodManHour27?: number;
+  prodQuantityHour26?: number; prodQuantityHour27?: number;
+  kagoStack26?: number; kagoStack27?: number;
   error26: number; error27: number; isWarning: boolean;
   dx26: number; dx27: number;
   grossProfit26: number; grossProfit27: number;
@@ -65,6 +76,8 @@ const SITE_CONFIGS: Record<string, {
   hasDelica: boolean;
   hasShowaDepts?: boolean;
   hasOieDepts?: boolean;
+  hasKobeCainz?: boolean;
+  hasFukuokaCainz?: boolean;
 }> = {
   yamanaka: {
     name: 'ヤマナカ',
@@ -114,6 +127,24 @@ const SITE_CONFIGS: Record<string, {
     hasShowaDepts: false,
     hasOieDepts: false,
   },
+  kobe_cainz: {
+    name: '神戸カインズ',
+    hasChikusan: false,
+    hasSuisan: false,
+    hasDelica: false,
+    hasShowaDepts: false,
+    hasOieDepts: false,
+    hasKobeCainz: true,
+  },
+  fukuoka_cainz: {
+    name: '福岡カインズ',
+    hasChikusan: false,
+    hasSuisan: false,
+    hasDelica: false,
+    hasShowaDepts: false,
+    hasOieDepts: false,
+    hasFukuokaCainz: true,
+  },
 };
 
 const formatValue = (key: string, value: number) => {
@@ -125,6 +156,7 @@ const formatValue = (key: string, value: number) => {
     case 'salesWan':
       return `${(Number(value) / 10000).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     case 'volume':
+    case 'kagoStack':
       return Number(value).toLocaleString('ja-JP', { maximumFractionDigits: 0 });
     case 'prodSales':
       return `${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -138,11 +170,14 @@ const formatValue = (key: string, value: number) => {
     case 'packHanyou':
     case 'packHannan':
     case 'packNsc':
+    case 'csSorter':
+    case 'csNonSorter':
       return `¥${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     case 'error':
-      return `${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
     case 'dx':
       return Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    case 'coeffAll':
+    case 'coeffNonSorter':
     case 'prodAll':
     case 'prodChikusan':
     case 'prodSuisan':
@@ -153,6 +188,10 @@ const formatValue = (key: string, value: number) => {
     case 'prodHanyou':
     case 'prodHannan':
     case 'prodNsc':
+    case 'prodKyushu':
+    case 'prodOkinawa':
+    case 'prodManHour':
+    case 'prodQuantityHour':
       return Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     case 'grossProfit':
     case 'operatingProfit':
@@ -174,6 +213,8 @@ function DashboardContent() {
     hasDelica: false,
     hasShowaDepts: false,
     hasOieDepts: false,
+    hasKobeCainz: false,
+    hasFukuokaCainz: false,
   };
   const siteDisplayName = siteConfig.name;
 
@@ -265,7 +306,6 @@ function DashboardContent() {
     });
   }, [data, hideEmptyMonths]);
 
-  // 全KPI指標リスト（指定ナンバリング固定適用）
   const metricsList = useMemo(() => {
     const list = [
       { id: 1, key: 'sales', name: '1. 売上', unit: '', isReverse: false, desc: '月次売上金額の推移', isForGrade: true },
@@ -300,9 +340,25 @@ function DashboardContent() {
       );
     }
 
+    // 神戸カインズ用 部門指標
+    if (siteConfig.hasKobeCainz) {
+      list.push(
+        { id: subId++, key: 'coeffAll', name: '作業係数(全体)', unit: '', isReverse: false, desc: '全体の作業係数推移', isForGrade: false },
+        { id: subId++, key: 'coeffNonSorter', name: '作業係数(非ソーター)', unit: '', isReverse: false, desc: '非ソーター部門の作業係数推移', isForGrade: false }
+      );
+    }
+
+    // 福岡カインズ用 部門指標
+    if (siteConfig.hasFukuokaCainz) {
+      list.push(
+        { id: subId++, key: 'prodKyushu', name: '九州4店舗 作業生産性', unit: '', isReverse: false, desc: '九州4店舗の作業効率', isForGrade: false },
+        { id: subId++, key: 'prodOkinawa', name: '沖縄3店舗 作業生産性', unit: '', isReverse: false, desc: '沖縄3店舗の作業効率', isForGrade: false }
+      );
+    }
+
     list.push(
       { id: 5, key: 'error', name: '5. 事故評価(エラー率)', unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)', isForGrade: true },
-      { id: 6, key: 'dx', name: 'DX評価', unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標', isForGrade: false },
+      { id: 6, key: 'dx', name: 'DX評価', unit: '', isReverse: false, desc: '減価償却費÷総労務費', isForGrade: false },
       { id: 7, key: 'grossProfit', name: '7. 売上総利益率', unit: '%', isReverse: false, desc: '粗利益率のポイント推移', isForGrade: true },
       { id: 8, key: 'operatingProfit', name: '8. 営業利益率', unit: '%', isReverse: false, desc: '営業利益率のポイント推移', isForGrade: true },
       { id: 9, key: 'budgetGrossProfit', name: '9. 予算総利益評価', unit: '%', isReverse: false, desc: '売上総利益実績 ÷ 予算売上総利益', isForGrade: true },
@@ -341,7 +397,7 @@ function DashboardContent() {
         if (pctNum >= 10) reasonText = '26期より大幅向上。労務費工数に対する売上創出額が飛躍的に拡大。';
         else if (pctNum >= 0) reasonText = '26期より向上。労務費に対する売上創出効率の改善傾向が定着。';
         else reasonText = '26期より低下。労務費工数に対する売上創出効率の改善対策が必要。';
-      } else if (item.key.startsWith('prod')) {
+      } else if (item.key.startsWith('prod') || item.key.startsWith('coeff')) {
         if (pctNum >= 10) reasonText = '26期より大幅向上。作業フローの最適化と習熟度向上が大きく寄与。';
         else if (pctNum >= 0) reasonText = '26期より向上。処理速度が向上し工数削減に貢献。';
         else if (pctNum >= -5) reasonText = '26期よりやや低下。ボトルネック工程の短縮と人員配置の見直しが必要。';
@@ -386,15 +442,21 @@ function DashboardContent() {
     });
   }, [totalSales26, totalSales27, data, metricsList]);
   const packUnitSummary = useMemo(() => {
-    const unitTitle = siteConfig.hasOieDepts ? 'タッチ単価(全体)' : '単価(全体)';
-    const list = [
-      {
+    let unitTitle = '単価(全体)';
+    if (siteConfig.hasOieDepts) unitTitle = 'タッチ単価(全体)';
+    if (siteConfig.hasKobeCainz) unitTitle = 'CS単価(全体)';
+
+    const list: any[] = [];
+
+    // 福岡カインズ以外は全体単価を表示
+    if (!siteConfig.hasFukuokaCainz) {
+      list.push({
         name: unitTitle,
         v26: calcPairedAvg('packAll', '26').toFixed(2),
         v27: calcPairedAvg('packAll', '27').toFixed(2),
         pct: calcPairedAvg('packAll', '26') > 0 ? (((calcPairedAvg('packAll', '27') - calcPairedAvg('packAll', '26')) / calcPairedAvg('packAll', '26')) * 100).toFixed(2) : '0.00'
-      }
-    ];
+      });
+    }
 
     if (siteConfig.hasChikusan) {
       const v26 = calcPairedAvg('packChikusan', '26');
@@ -465,10 +527,46 @@ function DashboardContent() {
       });
     }
 
+    // 神戸カインズ用 CS単価
+    if (siteConfig.hasKobeCainz) {
+      const depts = [
+        { key: 'csSorter', name: 'CS単価評価(ソーター)' },
+        { key: 'csNonSorter', name: 'CS単価評価(非ソーター)' },
+      ];
+      depts.forEach(d => {
+        const v26 = calcPairedAvg(d.key, '26');
+        const v27 = calcPairedAvg(d.key, '27');
+        list.push({
+          name: d.name,
+          v26: v26.toFixed(2),
+          v27: v27.toFixed(2),
+          pct: v26 > 0 ? (((v27 - v26) / v26) * 100).toFixed(2) : '0.00'
+        });
+      });
+    }
+
+    // 福岡カインズ用 人時生産性・数量時生産性・カゴ積み付け数
+    if (siteConfig.hasFukuokaCainz) {
+      const depts = [
+        { key: 'prodManHour', name: '人時生産性' },
+        { key: 'prodQuantityHour', name: '数量時生産性' },
+        { key: 'kagoStack', name: 'カゴ積み付け数' },
+      ];
+      depts.forEach(d => {
+        const v26 = calcPairedAvg(d.key, '26');
+        const v27 = calcPairedAvg(d.key, '27');
+        list.push({
+          name: d.name,
+          v26: v26.toFixed(2),
+          v27: v27.toFixed(2),
+          pct: v26 > 0 ? (((v27 - v26) / v26) * 100).toFixed(2) : '0.00'
+        });
+      });
+    }
+
     return list;
   }, [data, siteConfig]);
 
-  // ★ 新ランク基準：S:8, A:7, B:5~6, C:3~4, D:1~2（作業生産性は全体のみ対象）
   const gradeInfo = useMemo(() => {
     const validMetrics = metricAnalysis.filter(m => m.isForGrade);
     const goodCount = validMetrics.filter(m => m.isGood).length;
@@ -512,11 +610,18 @@ function DashboardContent() {
   }, [metricAnalysis]);
 
   const packMetricsList = useMemo(() => {
-    const unitTitle = siteConfig.hasOieDepts ? 'タッチ単価(全体)' : '単価(全体)';
-    const list = [
-      { id: 'volume', key: 'volume', name: '総物量 (全体)', unit: '', isReverse: false, desc: '月次の処理総物量' },
-      { id: 'packAll', key: 'packAll', name: unitTitle, unit: '', isReverse: false, desc: '商品1点あたりの平均単価' }
+    let unitTitle = '単価(全体)';
+    if (siteConfig.hasOieDepts) unitTitle = 'タッチ単価(全体)';
+    if (siteConfig.hasKobeCainz) unitTitle = 'CS単価(全体)';
+
+    const list: any[] = [
+      { id: 'volume', key: 'volume', name: '総物量 (全体)', unit: '', isReverse: false, desc: '月次の処理総物量' }
     ];
+
+    if (!siteConfig.hasFukuokaCainz) {
+      list.push({ id: 'packAll', key: 'packAll', name: unitTitle, unit: '', isReverse: false, desc: '商品1点あたりの平均単価' });
+    }
+
     if (siteConfig.hasChikusan) {
       list.push({ id: 'packChikusan', key: 'packChikusan', name: 'パック単価(畜産)', unit: '', isReverse: false, desc: '畜産商品のパック単価' });
     }
@@ -538,6 +643,19 @@ function DashboardContent() {
       list.push(
         { id: 'packHannan', key: 'packHannan', name: 'タッチ単価(阪南)', unit: '', isReverse: false, desc: '阪南部門のタッチ単価' },
         { id: 'packNsc', key: 'packNsc', name: 'タッチ単価(NSC)', unit: '', isReverse: false, desc: 'NSC部門のタッチ単価' }
+      );
+    }
+    if (siteConfig.hasKobeCainz) {
+      list.push(
+        { id: 'csSorter', key: 'csSorter', name: 'CS単価評価(ソーター)', unit: '', isReverse: false, desc: 'ソーター部門のCS単価' },
+        { id: 'csNonSorter', key: 'csNonSorter', name: 'CS単価評価(非ソーター)', unit: '', isReverse: false, desc: '非ソーター部門のCS単価' }
+      );
+    }
+    if (siteConfig.hasFukuokaCainz) {
+      list.push(
+        { id: 'prodManHour', key: 'prodManHour', name: '人時生産性', unit: '', isReverse: false, desc: '1人1時間あたりの生産高' },
+        { id: 'prodQuantityHour', key: 'prodQuantityHour', name: '数量時生産性', unit: '', isReverse: false, desc: '1時間あたりの処理数量' },
+        { id: 'kagoStack', key: 'kagoStack', name: 'カゴ積み付け数', unit: '', isReverse: false, desc: 'カゴ車への積み付け総数' }
       );
     }
     return list;
@@ -679,7 +797,6 @@ function DashboardContent() {
                 </div>
               </div>
 
-              {/* 判定基準ラベル表記 */}
               <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-bold z-10">
                 <span className="flex items-center gap-1 text-slate-400">
                   <Target className="w-3 h-3" />
@@ -923,15 +1040,15 @@ function DashboardContent() {
                   <div className="pt-4 border-t border-slate-200/80">
                     <div className="flex items-center gap-2 mb-3">
                       <Tag className="w-4 h-4 text-slate-600" />
-                      <h3 className="text-xs font-bold text-slate-800">売上単価指標 サマリー</h3>
+                      <h3 className="text-xs font-bold text-slate-800">単価・個別指標 サマリー</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       {packUnitSummary.map((p, i) => (
                         <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col justify-between">
                           <span className="text-[11px] font-bold text-slate-700">{p.name}</span>
                           <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-[10px] text-slate-400">26期: ¥{p.v26} ➔</span>
-                            <span className="text-xs font-black text-slate-900">¥{p.v27}</span>
+                            <span className="text-[10px] text-slate-400">26期: {p.v26} ➔</span>
+                            <span className="text-xs font-black text-slate-900">{p.v27}</span>
                           </div>
                           <div className="mt-1 text-right">
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${Number(p.pct) >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
@@ -1092,17 +1209,16 @@ function DashboardContent() {
                 </table>
               </div>
 
-              {/* 売上単価 ＋ 総物量指標 (月別推移) */}
               <div className="mt-8 pt-6 border-t border-slate-200/80">
                 <div className="flex items-center gap-2 mb-4">
                   <Package className="w-5 h-5 text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-900">売上単価・総物量指標 (月別推移)</h3>
+                  <h3 className="text-sm font-bold text-slate-900">単価・物量・個別指標 (月別推移)</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
-                        <th className="py-3 px-4 min-w-[180px]">単価・物量 項目名</th>
+                        <th className="py-3 px-4 min-w-[180px]">項目名</th>
                         {displayData.map(d => (
                           <th key={d.period} className="py-3 px-2 text-center min-w-[120px]">{d.period}</th>
                         ))}
@@ -1300,13 +1416,13 @@ function DashboardContent() {
               <div className="mt-8 pt-6 border-t border-slate-200/80">
                 <div className="flex items-center gap-2 mb-4">
                   <Tag className="w-5 h-5 text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-900">売上単価・物量指標 比較表</h3>
+                  <h3 className="text-sm font-bold text-slate-900">単価・個別指標 比較表</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
-                        <th className="py-3 px-4">単価・物量 項目</th>
+                        <th className="py-3 px-4">項目名</th>
                         <th className="py-3 px-4 text-right">26期 平均</th>
                         <th className="py-3 px-4 text-right">27期 平均</th>
                         <th className="py-3 px-4 text-right">前年差分</th>
