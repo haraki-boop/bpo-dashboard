@@ -64,6 +64,18 @@ const sites: SiteItem[] = [
     desc: '福岡カインズ BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/cainz.jpg',
   },
+  {
+    id: 'craft',
+    name: 'クラフトデリカ',
+    desc: 'クラフトデリカ BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/craft.png',
+  },
+  {
+    id: 'medientrance',
+    name: 'メディエントランス',
+    desc: 'メディエントランス BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/medei.jpg',
+  },
 ];
 
 const calculateSiteGrade = (rawData: any[]): string => {
@@ -209,9 +221,9 @@ export default function PortalPage() {
   }, [siteGrades]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-10 font-sans flex flex-col items-center justify-center">
-      {/* 4列表示用に最大幅を 7xl に拡張 */}
-      <div className="max-w-7xl w-full">
+    <div className="min-h-screen bg-slate-50 text-slate-900 px-4 py-8 md:px-8 md:py-10 font-sans flex flex-col items-center">
+      {/* 画面横幅を最大 1600px までフルに拡張 */}
+      <div className="w-full max-w-[1600px]">
         
         {/* ヘッダー */}
         <div className="text-center mb-8 flex flex-col items-center">
@@ -268,8 +280,8 @@ export default function PortalPage() {
           </div>
         </div>
 
-        {/* 現場カード一覧：スマホ1列、タブレット2列、PC（lg以上）4列 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+        {/* ★ 横4列（grid-cols-4）で横幅いっぱいに整列 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-5 w-full">
           {sites.map((site) => {
             const currentGrade = siteGrades[site.id] || '';
             const wmStyle = WATERMARK_STYLES[currentGrade] || { bgGlow: '', textWatermark: 'text-transparent' };
@@ -278,20 +290,20 @@ export default function PortalPage() {
               <Link
                 key={site.id}
                 href={`/${site.id}`}
-                className={`group relative bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-h-[190px] ${wmStyle.bgGlow}`}
+                className={`group relative bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-h-[180px] ${wmStyle.bgGlow}`}
               >
-                {/* 背景透かし文字パターン（4列幅に合わせたサイズ感） */}
+                {/* 背景透かし文字 */}
                 {currentGrade && (
                   <span
                     aria-hidden="true"
-                    className={`absolute -right-4 -bottom-10 text-[10rem] font-black select-none pointer-events-none transition-all duration-500 leading-none tracking-tighter ${wmStyle.textWatermark}`}
+                    className={`absolute -right-3 -bottom-8 text-[9rem] font-black select-none pointer-events-none transition-all duration-500 leading-none tracking-tighter ${wmStyle.textWatermark}`}
                   >
                     {currentGrade}
                   </span>
                 )}
 
                 <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-3 mb-2.5">
                     <div className="shrink-0 flex items-center justify-center h-12 w-12 overflow-visible">
                       <img
                         src={site.image}
@@ -299,7 +311,7 @@ export default function PortalPage() {
                         className={`h-full w-full object-contain ${site.scaleClass || ''}`}
                       />
                     </div>
-                    <h2 className="text-lg md:text-xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight line-clamp-1">
+                    <h2 className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight line-clamp-1">
                       {site.name}
                     </h2>
                   </div>
@@ -309,7 +321,7 @@ export default function PortalPage() {
                   </p>
                 </div>
 
-                <div className="relative z-10 mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
+                <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
                   <span>ダッシュボードを開く</span>
                   <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
                 </div>
