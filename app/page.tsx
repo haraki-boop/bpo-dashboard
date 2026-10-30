@@ -209,11 +209,13 @@ export default function PortalPage() {
   }, [siteGrades]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-12 font-sans flex flex-col items-center justify-center">
-      <div className="max-w-4xl w-full">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-10 font-sans flex flex-col items-center justify-center">
+      {/* 4列表示用に最大幅を 7xl に拡張 */}
+      <div className="max-w-7xl w-full">
         
-        <div className="text-center mb-10 flex flex-col items-center">
-          <div className="mb-4 h-12 flex items-center justify-center">
+        {/* ヘッダー */}
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="mb-3 h-12 flex items-center justify-center">
             <img
               src="/pal-logo.png"
               alt="PAL Logo"
@@ -221,15 +223,16 @@ export default function PortalPage() {
             />
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold mb-2">
             <LayoutDashboard className="w-4 h-4" />
             <span>BPO OPERATIONS COMMAND CENTER</span>
           </div>
 
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
-          <p className="text-slate-500 text-sm font-semibold mt-2">閲覧する拠点を選択してください</p>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
+          <p className="text-slate-500 text-xs md:text-sm font-semibold mt-1.5">閲覧する拠点を選択してください</p>
 
-          <div className="mt-6 inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
+          {/* シンプルな横並びステータス */}
+          <div className="mt-5 inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
             <div className="px-3 py-1 text-[11px] font-bold text-slate-400 border-r border-slate-100 flex items-center gap-1.5">
               <span>全{sites.length}拠点</span>
               <button
@@ -265,7 +268,8 @@ export default function PortalPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 現場カード一覧：スマホ1列、タブレット2列、PC（lg以上）4列 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
           {sites.map((site) => {
             const currentGrade = siteGrades[site.id] || '';
             const wmStyle = WATERMARK_STYLES[currentGrade] || { bgGlow: '', textWatermark: 'text-transparent' };
@@ -274,37 +278,40 @@ export default function PortalPage() {
               <Link
                 key={site.id}
                 href={`/${site.id}`}
-                className={`group relative bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-h-[175px] ${wmStyle.bgGlow}`}
+                className={`group relative bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-h-[190px] ${wmStyle.bgGlow}`}
               >
+                {/* 背景透かし文字パターン（4列幅に合わせたサイズ感） */}
                 {currentGrade && (
                   <span
                     aria-hidden="true"
-                    className={`absolute -right-6 -bottom-16 text-[16rem] font-black select-none pointer-events-none transition-all duration-500 leading-none tracking-tighter ${wmStyle.textWatermark}`}
+                    className={`absolute -right-4 -bottom-10 text-[10rem] font-black select-none pointer-events-none transition-all duration-500 leading-none tracking-tighter ${wmStyle.textWatermark}`}
                   >
                     {currentGrade}
                   </span>
                 )}
 
                 <div className="relative z-10">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="shrink-0 flex items-center justify-center h-16 w-16 overflow-visible">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="shrink-0 flex items-center justify-center h-12 w-12 overflow-visible">
                       <img
                         src={site.image}
                         alt={site.name}
                         className={`h-full w-full object-contain ${site.scaleClass || ''}`}
                       />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight">
+                    <h2 className="text-lg md:text-xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight line-clamp-1">
                       {site.name}
                     </h2>
                   </div>
 
-                  <p className="text-xs text-slate-500 leading-relaxed font-medium pl-1">{site.desc}</p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed font-medium line-clamp-2">
+                    {site.desc}
+                  </p>
                 </div>
 
-                <div className="relative z-10 mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
+                <div className="relative z-10 mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
                   <span>ダッシュボードを開く</span>
-                  <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
             );
