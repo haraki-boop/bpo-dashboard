@@ -61,6 +61,24 @@ interface BpoData {
   prodManHour26?: number; prodManHour27?: number;
   prodQuantityHour26?: number; prodQuantityHour27?: number;
   kagoStack26?: number; kagoStack27?: number;
+  // クラフトデリカ用
+  prodCraftDelica26?: number; prodCraftDelica27?: number;
+  prodCraftGenryo26?: number; prodCraftGenryo27?: number;
+  packCraftDelica26?: number; packCraftDelica27?: number;
+  packCraftGenryo26?: number; packCraftGenryo27?: number;
+  packCraftReizo26?: number; packCraftReizo27?: number;
+  // メディエントランス用
+  prodMediNyuka26?: number; prodMediNyuka27?: number;
+  prodMediShukka26?: number; prodMediShukka27?: number;
+  packMediNyuka26?: number; packMediNyuka27?: number;
+  packMediShukka26?: number; packMediShukka27?: number;
+  // 三井食品用
+  prodMitsuiSugishoku26?: number; prodMitsuiSugishoku27?: number;
+  prodMitsuiSugishu26?: number; prodMitsuiSugishu27?: number;
+  prodMitsuiOther26?: number; prodMitsuiOther27?: number;
+  // ランドポート用
+  prodLandportRs26?: number; prodLandportRs27?: number;
+
   error26: number; error27: number; isWarning: boolean;
   dx26: number; dx27: number;
   grossProfit26: number; grossProfit27: number;
@@ -78,6 +96,10 @@ const SITE_CONFIGS: Record<string, {
   hasOieDepts?: boolean;
   hasKobeCainz?: boolean;
   hasFukuokaCainz?: boolean;
+  hasCraft?: boolean;
+  hasMedi?: boolean;
+  hasMitsui?: boolean;
+  hasLandport?: boolean;
 }> = {
   yamanaka: {
     name: 'ヤマナカ',
@@ -103,21 +125,14 @@ const SITE_CONFIGS: Record<string, {
     hasShowaDepts: false,
     hasOieDepts: false,
   },
-  showa: {
-    name: '昭和冷蔵',
-    hasChikusan: false,
-    hasSuisan: false,
-    hasDelica: false,
-    hasShowaDepts: true,
-    hasOieDepts: false,
-  },
-  oie: {
-    name: '尾家産業',
+  mitsui: {
+    name: '三井食品',
     hasChikusan: false,
     hasSuisan: false,
     hasDelica: false,
     hasShowaDepts: false,
-    hasOieDepts: true,
+    hasOieDepts: false,
+    hasMitsui: true,
   },
   minamikanto: {
     name: 'AFS南関東',
@@ -126,6 +141,40 @@ const SITE_CONFIGS: Record<string, {
     hasDelica: false,
     hasShowaDepts: false,
     hasOieDepts: false,
+  },
+  showa: {
+    name: '昭和冷蔵',
+    hasChikusan: false,
+    hasSuisan: false,
+    hasDelica: false,
+    hasShowaDepts: true,
+    hasOieDepts: false,
+  },
+  landport: {
+    name: 'ランドポート',
+    hasChikusan: false,
+    hasSuisan: false,
+    hasDelica: false,
+    hasShowaDepts: false,
+    hasOieDepts: false,
+    hasLandport: true,
+  },
+  craft: {
+    name: 'クラフトデリカ',
+    hasChikusan: false,
+    hasSuisan: false,
+    hasDelica: false,
+    hasShowaDepts: false,
+    hasOieDepts: false,
+    hasCraft: true,
+  },
+  oie: {
+    name: '尾家産業',
+    hasChikusan: false,
+    hasSuisan: false,
+    hasDelica: false,
+    hasShowaDepts: false,
+    hasOieDepts: true,
   },
   kobe_cainz: {
     name: '神戸カインズ',
@@ -144,6 +193,15 @@ const SITE_CONFIGS: Record<string, {
     hasShowaDepts: false,
     hasOieDepts: false,
     hasFukuokaCainz: true,
+  },
+  medientrance: {
+    name: 'メディエントランス',
+    hasChikusan: false,
+    hasSuisan: false,
+    hasDelica: false,
+    hasShowaDepts: false,
+    hasOieDepts: false,
+    hasMedi: true,
   },
 };
 
@@ -172,6 +230,11 @@ const formatValue = (key: string, value: number) => {
     case 'packNsc':
     case 'csSorter':
     case 'csNonSorter':
+    case 'packCraftDelica':
+    case 'packCraftGenryo':
+    case 'packCraftReizo':
+    case 'packMediNyuka':
+    case 'packMediShukka':
       return `¥${Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     case 'error':
     case 'dx':
@@ -192,6 +255,14 @@ const formatValue = (key: string, value: number) => {
     case 'prodOkinawa':
     case 'prodManHour':
     case 'prodQuantityHour':
+    case 'prodCraftDelica':
+    case 'prodCraftGenryo':
+    case 'prodMediNyuka':
+    case 'prodMediShukka':
+    case 'prodMitsuiSugishoku':
+    case 'prodMitsuiSugishu':
+    case 'prodMitsuiOther':
+    case 'prodLandportRs':
       return Number(value).toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     case 'grossProfit':
     case 'operatingProfit':
@@ -215,6 +286,10 @@ function DashboardContent() {
     hasOieDepts: false,
     hasKobeCainz: false,
     hasFukuokaCainz: false,
+    hasCraft: false,
+    hasMedi: false,
+    hasMitsui: false,
+    hasLandport: false,
   };
   const siteDisplayName = siteConfig.name;
 
@@ -340,7 +415,6 @@ function DashboardContent() {
       );
     }
 
-    // 神戸カインズ用 部門指標
     if (siteConfig.hasKobeCainz) {
       list.push(
         { id: subId++, key: 'coeffAll', name: '作業係数(全体)', unit: '', isReverse: false, desc: '全体の作業係数推移', isForGrade: false },
@@ -348,7 +422,6 @@ function DashboardContent() {
       );
     }
 
-    // 福岡カインズ用 部門指標
     if (siteConfig.hasFukuokaCainz) {
       list.push(
         { id: subId++, key: 'prodKyushu', name: '九州4店舗 作業生産性', unit: '', isReverse: false, desc: '九州4店舗の作業効率', isForGrade: false },
@@ -356,9 +429,38 @@ function DashboardContent() {
       );
     }
 
+    if (siteConfig.hasCraft) {
+      list.push(
+        { id: subId++, key: 'prodCraftDelica', name: '作業生産性(デリカPC/RS)', unit: '', isReverse: false, desc: 'デリカPC/RSの作業効率', isForGrade: false },
+        { id: subId++, key: 'prodCraftGenryo', name: '作業生産性(常温原料)', unit: '', isReverse: false, desc: '常温原料部門の作業効率', isForGrade: false }
+      );
+    }
+
+    if (siteConfig.hasMedi) {
+      list.push(
+        { id: subId++, key: 'prodMediNyuka', name: '作業生産性(入荷)', unit: '', isReverse: false, desc: '入荷作業の処理効率', isForGrade: false },
+        { id: subId++, key: 'prodMediShukka', name: '作業生産性(出荷)', unit: '', isReverse: false, desc: '出荷作業の処理効率', isForGrade: false }
+      );
+    }
+
+    if (siteConfig.hasMitsui) {
+      list.push(
+        { id: subId++, key: 'prodMitsuiSugishoku', name: '作業生産性(スギ食)', unit: '', isReverse: false, desc: 'スギ食部門の作業効率', isForGrade: false },
+        { id: subId++, key: 'prodMitsuiSugishu', name: '作業生産性(スギ酒)', unit: '', isReverse: false, desc: 'スギ酒部門の作業効率', isForGrade: false },
+        { id: subId++, key: 'prodMitsuiOther', name: '作業生産性(その他)', unit: '', isReverse: false, desc: 'その他部門の作業効率', isForGrade: false }
+      );
+    }
+
+    // ランドポート用 部門指標
+    if (siteConfig.hasLandport) {
+      list.push(
+        { id: subId++, key: 'prodLandportRs', name: '作業生産性(RS)', unit: '', isReverse: false, desc: 'RS部門の作業効率', isForGrade: false }
+      );
+    }
+
     list.push(
       { id: 5, key: 'error', name: '5. 事故評価(エラー率)', unit: '', isReverse: true, desc: 'エラー発生率 (低いほど高評価)', isForGrade: true },
-      { id: 6, key: 'dx', name: 'DX評価', unit: '', isReverse: false, desc: '減価償却費÷総労務費', isForGrade: false },
+      { id: 6, key: 'dx', name: 'DX評価', unit: '', isReverse: false, desc: 'DX化・減価償却費関連指標', isForGrade: false },
       { id: 7, key: 'grossProfit', name: '7. 売上総利益率', unit: '%', isReverse: false, desc: '粗利益率のポイント推移', isForGrade: true },
       { id: 8, key: 'operatingProfit', name: '8. 営業利益率', unit: '%', isReverse: false, desc: '営業利益率のポイント推移', isForGrade: true },
       { id: 9, key: 'budgetGrossProfit', name: '9. 予算総利益評価', unit: '%', isReverse: false, desc: '売上総利益実績 ÷ 予算売上総利益', isForGrade: true },
@@ -442,14 +544,15 @@ function DashboardContent() {
     });
   }, [totalSales26, totalSales27, data, metricsList]);
   const packUnitSummary = useMemo(() => {
-    let unitTitle = '単価(全体)';
+    let unitTitle = 'パック単価(全体)';
     if (siteConfig.hasOieDepts) unitTitle = 'タッチ単価(全体)';
     if (siteConfig.hasKobeCainz) unitTitle = 'CS単価(全体)';
+    if (siteConfig.hasMedi) unitTitle = '行単価(全体)';
 
     const list: any[] = [];
 
-    // 福岡カインズ以外は全体単価を表示
-    if (!siteConfig.hasFukuokaCainz) {
+    // 福岡カインズ・三井食品以外は全体単価を表示
+    if (!siteConfig.hasFukuokaCainz && !siteConfig.hasMitsui) {
       list.push({
         name: unitTitle,
         v26: calcPairedAvg('packAll', '26').toFixed(2),
@@ -527,7 +630,6 @@ function DashboardContent() {
       });
     }
 
-    // 神戸カインズ用 CS単価
     if (siteConfig.hasKobeCainz) {
       const depts = [
         { key: 'csSorter', name: 'CS単価評価(ソーター)' },
@@ -545,12 +647,46 @@ function DashboardContent() {
       });
     }
 
-    // 福岡カインズ用 人時生産性・数量時生産性・カゴ積み付け数
     if (siteConfig.hasFukuokaCainz) {
       const depts = [
         { key: 'prodManHour', name: '人時生産性' },
         { key: 'prodQuantityHour', name: '数量時生産性' },
         { key: 'kagoStack', name: 'カゴ積み付け数' },
+      ];
+      depts.forEach(d => {
+        const v26 = calcPairedAvg(d.key, '26');
+        const v27 = calcPairedAvg(d.key, '27');
+        list.push({
+          name: d.name,
+          v26: v26.toFixed(2),
+          v27: v27.toFixed(2),
+          pct: v26 > 0 ? (((v27 - v26) / v26) * 100).toFixed(2) : '0.00'
+        });
+      });
+    }
+
+    if (siteConfig.hasCraft) {
+      const depts = [
+        { key: 'packCraftDelica', name: 'パック単価(デリカPC/RS)' },
+        { key: 'packCraftGenryo', name: 'パック単価(常温原料)' },
+        { key: 'packCraftReizo', name: 'パック単価(冷蔵原料)' },
+      ];
+      depts.forEach(d => {
+        const v26 = calcPairedAvg(d.key, '26');
+        const v27 = calcPairedAvg(d.key, '27');
+        list.push({
+          name: d.name,
+          v26: v26.toFixed(2),
+          v27: v27.toFixed(2),
+          pct: v26 > 0 ? (((v27 - v26) / v26) * 100).toFixed(2) : '0.00'
+        });
+      });
+    }
+
+    if (siteConfig.hasMedi) {
+      const depts = [
+        { key: 'packMediNyuka', name: '行単価評価(入荷)' },
+        { key: 'packMediShukka', name: '行単価評価(出荷)' },
       ];
       depts.forEach(d => {
         const v26 = calcPairedAvg(d.key, '26');
@@ -610,15 +746,16 @@ function DashboardContent() {
   }, [metricAnalysis]);
 
   const packMetricsList = useMemo(() => {
-    let unitTitle = '単価(全体)';
+    let unitTitle = 'パック単価(全体)';
     if (siteConfig.hasOieDepts) unitTitle = 'タッチ単価(全体)';
     if (siteConfig.hasKobeCainz) unitTitle = 'CS単価(全体)';
+    if (siteConfig.hasMedi) unitTitle = '行単価(全体)';
 
     const list: any[] = [
       { id: 'volume', key: 'volume', name: '総物量 (全体)', unit: '', isReverse: false, desc: '月次の処理総物量' }
     ];
 
-    if (!siteConfig.hasFukuokaCainz) {
+    if (!siteConfig.hasFukuokaCainz && !siteConfig.hasMitsui) {
       list.push({ id: 'packAll', key: 'packAll', name: unitTitle, unit: '', isReverse: false, desc: '商品1点あたりの平均単価' });
     }
 
@@ -658,6 +795,20 @@ function DashboardContent() {
         { id: 'kagoStack', key: 'kagoStack', name: 'カゴ積み付け数', unit: '', isReverse: false, desc: 'カゴ車への積み付け総数' }
       );
     }
+    if (siteConfig.hasCraft) {
+      list.push(
+        { id: 'packCraftDelica', key: 'packCraftDelica', name: 'パック単価(デリカPC/RS)', unit: '', isReverse: false, desc: 'デリカPC/RSのパック単価' },
+        { id: 'packCraftGenryo', key: 'packCraftGenryo', name: 'パック単価(常温原料)', unit: '', isReverse: false, desc: '常温原料のパック単価' },
+        { id: 'packCraftReizo', key: 'packCraftReizo', name: 'パック単価(冷蔵原料)', unit: '', isReverse: false, desc: '冷蔵原料のパック単価' }
+      );
+    }
+    if (siteConfig.hasMedi) {
+      list.push(
+        { id: 'packMediNyuka', name: '行単価評価(入荷)', unit: '', isReverse: false, desc: '入荷作業の行単価' },
+        { id: 'packMediShukka', name: '行単価評価(出荷)', unit: '', isReverse: false, desc: '出荷作業の行単価' }
+      );
+    }
+
     return list;
   }, [siteConfig]);
 
@@ -1037,28 +1188,30 @@ function DashboardContent() {
                     })}
                   </div>
 
-                  <div className="pt-4 border-t border-slate-200/80">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Tag className="w-4 h-4 text-slate-600" />
-                      <h3 className="text-xs font-bold text-slate-800">単価・個別指標 サマリー</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {packUnitSummary.map((p, i) => (
-                        <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col justify-between">
-                          <span className="text-[11px] font-bold text-slate-700">{p.name}</span>
-                          <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-[10px] text-slate-400">26期: {p.v26} ➔</span>
-                            <span className="text-xs font-black text-slate-900">{p.v27}</span>
+                  {packUnitSummary.length > 0 && (
+                    <div className="pt-4 border-t border-slate-200/80">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Tag className="w-4 h-4 text-slate-600" />
+                        <h3 className="text-xs font-bold text-slate-800">単価・個別指標 サマリー</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {packUnitSummary.map((p, i) => (
+                          <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col justify-between">
+                            <span className="text-[11px] font-bold text-slate-700">{p.name}</span>
+                            <div className="mt-1 flex items-baseline justify-between">
+                              <span className="text-[10px] text-slate-400">26期: {p.v26} ➔</span>
+                              <span className="text-xs font-black text-slate-900">{p.v27}</span>
+                            </div>
+                            <div className="mt-1 text-right">
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${Number(p.pct) >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                                昨対比 {Number(p.pct) >= 0 ? '+' : ''}{p.pct}%
+                              </span>
+                            </div>
                           </div>
-                          <div className="mt-1 text-right">
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${Number(p.pct) >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                              昨対比 {Number(p.pct) >= 0 ? '+' : ''}{p.pct}%
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                 </div>
               </div>
@@ -1209,95 +1362,97 @@ function DashboardContent() {
                 </table>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-slate-200/80">
-                <div className="flex items-center gap-2 mb-4">
-                  <Package className="w-5 h-5 text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-900">単価・物量・個別指標 (月別推移)</h3>
+              {packMetricsList.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-slate-200/80">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Package className="w-5 h-5 text-indigo-600" />
+                    <h3 className="text-sm font-bold text-slate-900">単価・物量・個別指標 (月別推移)</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
+                          <th className="py-3 px-4 min-w-[180px]">項目名</th>
+                          {displayData.map(d => (
+                            <th key={d.period} className="py-3 px-2 text-center min-w-[120px]">{d.period}</th>
+                          ))}
+                          <th className="py-3 px-4 text-right min-w-[120px]">半期平均前年比</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {packMetricsList.map(m => {
+                          const k26 = `${m.key}26` as keyof BpoData;
+                          const k27 = `${m.key}27` as keyof BpoData;
+                          
+                          const pairedMonths = data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
+                          const validCount = pairedMonths.length > 0 ? pairedMonths.length : 1;
+
+                          const sum26 = pairedMonths.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
+                          const sum27 = pairedMonths.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
+
+                          const avg26 = sum26 / validCount;
+                          const avg27 = sum27 / validCount;
+                          const hasValidPaired = pairedMonths.length > 0;
+                          const totalDiffPct = (hasValidPaired && avg26 > 0) ? ((avg27 - avg26) / avg26) * 100 : 0;
+
+                          return (
+                            <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="py-3 px-4 font-bold text-slate-800">
+                                {m.name}
+                                <span className="block text-[10px] font-normal text-slate-400">{m.desc}</span>
+                              </td>
+                              {displayData.map(monthData => {
+                                const v26 = Number(monthData[k26]) || 0;
+                                const v27 = Number(monthData[k27]) || 0;
+                                const isBothActive = v26 > 0 && v27 > 0;
+                                const diffPct = isBothActive ? ((v27 - v26) / v26) * 100 : 0;
+                                const cellBg = getHeatmapBg(diffPct, m.isReverse, true);
+
+                                return (
+                                  <td key={monthData.period} className="py-2 px-1.5 text-center">
+                                    {isBothActive ? (
+                                      <div className={`p-2.5 rounded-xl border flex flex-col justify-center gap-1 shadow-2xs ${cellBg} min-w-[110px]`}>
+                                        <div className="flex justify-between items-end w-full leading-none">
+                                          <span className="text-[10px] font-medium opacity-80 text-slate-500">26期</span>
+                                          <span className="text-sm font-bold text-slate-800">{formatValue(m.key, v26)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-end w-full leading-none mt-1">
+                                          <span className="text-[10px] font-medium opacity-80 text-slate-500">27期</span>
+                                          <span className="text-sm font-black text-slate-900">{formatValue(m.key, v27)}</span>
+                                        </div>
+                                        <div className="w-full mt-1.5 pt-1.5 border-t border-slate-200 flex justify-end items-center">
+                                          <span className={`text-[13px] font-black tracking-tight ${diffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                            {diffPct >= 0 ? '+' : ''}{diffPct.toFixed(2)}%
+                                          </span>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="py-4 px-1 rounded-xl bg-slate-50/50 border border-slate-100 text-slate-300 text-center font-black text-sm min-w-[110px]">
+                                        ー
+                                      </div>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                              <td className="py-3 px-4 text-right font-bold text-slate-900">
+                                {!hasValidPaired ? (
+                                  <span className="inline-block px-4 py-1.5 rounded-lg text-[13px] font-black bg-slate-50 text-slate-300 border border-slate-100">
+                                    ー
+                                  </span>
+                                ) : (
+                                  <span className={`inline-block px-3 py-1.5 rounded-lg text-[13px] font-black border bg-slate-50 border-slate-200 ${totalDiffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                    {totalDiffPct >= 0 ? '+' : ''}{totalDiffPct.toFixed(2)}%
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
-                        <th className="py-3 px-4 min-w-[180px]">項目名</th>
-                        {displayData.map(d => (
-                          <th key={d.period} className="py-3 px-2 text-center min-w-[120px]">{d.period}</th>
-                        ))}
-                        <th className="py-3 px-4 text-right min-w-[120px]">半期平均前年比</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {packMetricsList.map(m => {
-                        const k26 = `${m.key}26` as keyof BpoData;
-                        const k27 = `${m.key}27` as keyof BpoData;
-                        
-                        const pairedMonths = data.filter(d => (Number(d[k26]) || 0) > 0 && (Number(d[k27]) || 0) > 0);
-                        const validCount = pairedMonths.length > 0 ? pairedMonths.length : 1;
-
-                        const sum26 = pairedMonths.reduce((s, d) => s + (Number(d[k26]) || 0), 0);
-                        const sum27 = pairedMonths.reduce((s, d) => s + (Number(d[k27]) || 0), 0);
-
-                        const avg26 = sum26 / validCount;
-                        const avg27 = sum27 / validCount;
-                        const hasValidPaired = pairedMonths.length > 0;
-                        const totalDiffPct = (hasValidPaired && avg26 > 0) ? ((avg27 - avg26) / avg26) * 100 : 0;
-
-                        return (
-                          <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-3 px-4 font-bold text-slate-800">
-                              {m.name}
-                              <span className="block text-[10px] font-normal text-slate-400">{m.desc}</span>
-                            </td>
-                            {displayData.map(monthData => {
-                              const v26 = Number(monthData[k26]) || 0;
-                              const v27 = Number(monthData[k27]) || 0;
-                              const isBothActive = v26 > 0 && v27 > 0;
-                              const diffPct = isBothActive ? ((v27 - v26) / v26) * 100 : 0;
-                              const cellBg = getHeatmapBg(diffPct, m.isReverse, true);
-
-                              return (
-                                <td key={monthData.period} className="py-2 px-1.5 text-center">
-                                  {isBothActive ? (
-                                    <div className={`p-2.5 rounded-xl border flex flex-col justify-center gap-1 shadow-2xs ${cellBg} min-w-[110px]`}>
-                                      <div className="flex justify-between items-end w-full leading-none">
-                                        <span className="text-[10px] font-medium opacity-80 text-slate-500">26期</span>
-                                        <span className="text-sm font-bold text-slate-800">{formatValue(m.key, v26)}</span>
-                                      </div>
-                                      <div className="flex justify-between items-end w-full leading-none mt-1">
-                                        <span className="text-[10px] font-medium opacity-80 text-slate-500">27期</span>
-                                        <span className="text-sm font-black text-slate-900">{formatValue(m.key, v27)}</span>
-                                      </div>
-                                      <div className="w-full mt-1.5 pt-1.5 border-t border-slate-200 flex justify-end items-center">
-                                        <span className={`text-[13px] font-black tracking-tight ${diffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                          {diffPct >= 0 ? '+' : ''}{diffPct.toFixed(2)}%
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="py-4 px-1 rounded-xl bg-slate-50/50 border border-slate-100 text-slate-300 text-center font-black text-sm min-w-[110px]">
-                                      ー
-                                    </div>
-                                  )}
-                                </td>
-                              );
-                            })}
-                            <td className="py-3 px-4 text-right font-bold text-slate-900">
-                              {!hasValidPaired ? (
-                                <span className="inline-block px-4 py-1.5 rounded-lg text-[13px] font-black bg-slate-50 text-slate-300 border border-slate-100">
-                                  ー
-                                </span>
-                              ) : (
-                                <span className={`inline-block px-3 py-1.5 rounded-lg text-[13px] font-black border bg-slate-50 border-slate-200 ${totalDiffPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                  {totalDiffPct >= 0 ? '+' : ''}{totalDiffPct.toFixed(2)}%
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -1413,53 +1568,55 @@ function DashboardContent() {
                 </table>
               </div>
               
-              <div className="mt-8 pt-6 border-t border-slate-200/80">
-                <div className="flex items-center gap-2 mb-4">
-                  <Tag className="w-5 h-5 text-indigo-600" />
-                  <h3 className="text-sm font-bold text-slate-900">単価・個別指標 比較表</h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
-                        <th className="py-3 px-4">項目名</th>
-                        <th className="py-3 px-4 text-right">26期 平均</th>
-                        <th className="py-3 px-4 text-right">27期 平均</th>
-                        <th className="py-3 px-4 text-right">前年差分</th>
-                        <th className="py-3 px-4 text-right">前年比 (%)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {packMetricsList.map(m => {
-                        const v26 = calcPairedAvg(m.key, '26');
-                        const v27 = calcPairedAvg(m.key, '27');
-                        const diff = v27 - v26;
-                        const pct = v26 > 0 ? (diff / v26) * 100 : 0;
-                        const isGood = pct >= 0;
+              {packMetricsList.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-slate-200/80">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Tag className="w-5 h-5 text-indigo-600" />
+                    <h3 className="text-sm font-bold text-slate-900">単価・個別指標 比較表</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase">
+                          <th className="py-3 px-4">項目名</th>
+                          <th className="py-3 px-4 text-right">26期 平均</th>
+                          <th className="py-3 px-4 text-right">27期 平均</th>
+                          <th className="py-3 px-4 text-right">前年差分</th>
+                          <th className="py-3 px-4 text-right">前年比 (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {packMetricsList.map(m => {
+                          const v26 = calcPairedAvg(m.key, '26');
+                          const v27 = calcPairedAvg(m.key, '27');
+                          const diff = v27 - v26;
+                          const pct = v26 > 0 ? (diff / v26) * 100 : 0;
+                          const isGood = pct >= 0;
 
-                        return (
-                          <tr key={m.id} className="hover:bg-slate-50 transition-colors">
-                            <td className="py-3.5 px-4 font-bold text-slate-800">
-                              {m.name}
-                              <span className="block text-[10px] font-normal text-slate-400">{m.desc}</span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right font-medium text-slate-600">{formatValue(m.key, v26)}{m.unit}</td>
-                            <td className="py-3.5 px-4 text-right font-bold text-slate-900">{formatValue(m.key, v27)}{m.unit}</td>
-                            <td className="py-3.5 px-4 text-right font-bold text-slate-700">
-                              {diff >= 0 ? '+' : ''}{formatValue(m.key, diff)}{m.unit}
-                            </td>
-                            <td className="py-3.5 px-4 text-right font-bold">
-                              <span className={isGood ? 'text-emerald-700' : 'text-rose-700'}>
-                                {pct >= 0 ? '+' : ''}{pct.toFixed(2)}%
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                          return (
+                            <tr key={m.id} className="hover:bg-slate-50 transition-colors">
+                              <td className="py-3.5 px-4 font-bold text-slate-800">
+                                {m.name}
+                                <span className="block text-[10px] font-normal text-slate-400">{m.desc}</span>
+                              </td>
+                              <td className="py-3.5 px-4 text-right font-medium text-slate-600">{formatValue(m.key, v26)}{m.unit}</td>
+                              <td className="py-3.5 px-4 text-right font-bold text-slate-900">{formatValue(m.key, v27)}{m.unit}</td>
+                              <td className="py-3.5 px-4 text-right font-bold text-slate-700">
+                                {diff >= 0 ? '+' : ''}{formatValue(m.key, diff)}{m.unit}
+                              </td>
+                              <td className="py-3.5 px-4 text-right font-bold">
+                                <span className={isGood ? 'text-emerald-700' : 'text-rose-700'}>
+                                  {pct >= 0 ? '+' : ''}{pct.toFixed(2)}%
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </>

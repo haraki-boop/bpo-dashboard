@@ -34,16 +34,10 @@ const sites: SiteItem[] = [
     scaleClass: 'scale-150',
   },
   {
-    id: 'showa',
-    name: '昭和冷蔵',
-    desc: '昭和冷蔵 BPO現場パフォーマンス・KPI分析ダッシュボード',
-    image: '/syowa.jpg',
-  },
-  {
-    id: 'oie',
-    name: '尾家産業',
-    desc: '尾家産業 BPO現場パフォーマンス・KPI分析ダッシュボード',
-    image: '/oie.png',
+    id: 'mitsui',
+    name: '三井食品',
+    desc: '三井食品 BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/mitsui.jpg',
   },
   {
     id: 'minamikanto',
@@ -51,6 +45,30 @@ const sites: SiteItem[] = [
     desc: 'AFS南関東 BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/bisai.png',
     scaleClass: 'scale-150',
+  },
+  {
+    id: 'showa',
+    name: '昭和冷蔵',
+    desc: '昭和冷蔵 BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/syowa.jpg',
+  },
+  {
+    id: 'landport',
+    name: 'ランドポート',
+    desc: 'ランドポート BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/rand.png',
+  },
+  {
+    id: 'craft',
+    name: 'クラフトデリカ',
+    desc: 'クラフトデリカ BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/craft.png',
+  },
+  {
+    id: 'oie',
+    name: '尾家産業',
+    desc: '尾家産業 BPO現場パフォーマンス・KPI分析ダッシュボード',
+    image: '/oie.png',
   },
   {
     id: 'kobe_cainz',
@@ -63,12 +81,6 @@ const sites: SiteItem[] = [
     name: '福岡カインズ',
     desc: '福岡カインズ BPO現場パフォーマンス・KPI分析ダッシュボード',
     image: '/cainz.jpg',
-  },
-  {
-    id: 'craft',
-    name: 'クラフトデリカ',
-    desc: 'クラフトデリカ BPO現場パフォーマンス・KPI分析ダッシュボード',
-    image: '/craft.png',
   },
   {
     id: 'medientrance',
@@ -222,7 +234,6 @@ export default function PortalPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 px-4 py-8 md:px-8 md:py-10 font-sans flex flex-col items-center">
-      {/* 画面横幅を最大 1600px までフルに拡張 */}
       <div className="w-full max-w-[1600px]">
         
         {/* ヘッダー */}
@@ -243,7 +254,6 @@ export default function PortalPage() {
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">BPO現場通知表 拠点選択</h1>
           <p className="text-slate-500 text-xs md:text-sm font-semibold mt-1.5">閲覧する拠点を選択してください</p>
 
-          {/* シンプルな横並びステータス */}
           <div className="mt-5 inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
             <div className="px-3 py-1 text-[11px] font-bold text-slate-400 border-r border-slate-100 flex items-center gap-1.5">
               <span>全{sites.length}拠点</span>
@@ -280,7 +290,7 @@ export default function PortalPage() {
           </div>
         </div>
 
-        {/* ★ 横4列（grid-cols-4）で横幅いっぱいに整列 */}
+        {/* 12拠点（4列×3行）グリッド配置 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-5 w-full">
           {sites.map((site) => {
             const currentGrade = siteGrades[site.id] || '';
@@ -292,7 +302,6 @@ export default function PortalPage() {
                 href={`/${site.id}`}
                 className={`group relative bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden min-h-[180px] ${wmStyle.bgGlow}`}
               >
-                {/* 背景透かし文字 */}
                 {currentGrade && (
                   <span
                     aria-hidden="true"
